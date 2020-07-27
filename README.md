@@ -3,7 +3,7 @@
 <p>Find the project description at <a href="https://willem.aandewiel.nl/">www.aandewiel.nl</a> (not yet but soon).</p>
 <br>
 
-This library gives an interface between your own program and the I2C_LaSE board.
+This library gives an interface between your own program and the I2C_ExtPlus board.
 
 <center><img src="images/I2C_Extender_Top.png"></center>
 
@@ -13,13 +13,13 @@ To use it you have to include this library in your sketch
 #include <I2C_ExtPlus.h>
 ```
 
-Declare an Encoder object (declare one for every I2C_ExtPlus board):
+Declare an Extender object (declare one for every I2C_ExtPlus board):
 
 ```
 I2CEXTPL ExtenderBoard; // Create instance of the I2CEXTPL object
 ```
 
-In the main <code>loop()</code> function handle <code>interruptPending</code>.
+In the main <code>loop()</code>.
 
 ```
 void loop() 
@@ -31,27 +31,27 @@ void loop()
   
   if (bitRead(sysStatus, 1))
   {
-    statusReg = ExtenderBoard.getslotStatus[4]();
+    statusReg = ExtenderBoard.getSlotStatus(4);
     if (statusReg != 0) 
     {
-      if (ExtenderBoard.isslot4Pressed() ) 
+      if (ExtenderBoard.isSlotPressed(4) ) 
       {
         Serial.println(F("(slot4)-------> Button Pressed"));
       }
-      if (ExtenderBoard.isslot4QuickReleased() ) 
+      if (ExtenderBoard.isSlotQuickReleased(4) ) 
       {
         Serial.println(F("(slot4)-------> Quick Release "));
-        ExtenderBoard.setOutput(1, HIGH, 5000);
+        ExtenderBoard.setOutputToggle(1, HIGH, 5000);
       }
-      if (ExtenderBoard.isslot4MidReleased() ) 
+      if (ExtenderBoard.isSlotMidReleased(4) ) 
       {
         Serial.println(F("(slot4)-------> Mid Release   "));
-        ExtenderBoard.setOutputBlink(1, 250, 500, 0);
+        ExtenderBoard.setOutputPulse(1, 250, 500, 0);
       }
-      if (ExtenderBoard.isslot4LongReleased() ) 
+      if (ExtenderBoard.isSlotLongReleased(4) ) 
       {
         Serial.println(F("(slot4)-------> Long Release  "));
-        ExtenderBoard.setOutputBlink(1, 1000, 1700, 10000);
+        ExtenderBoard.setOutputPulse(1, 1000, 1700, 10000);
       }
     } // statusReg != 0
   }
@@ -66,7 +66,7 @@ The library gives you the following setters:
 | Setter             | Returns | Parms    | Description             |
 |:-------------------|:-------:|:---------|:------------------------|
 | setOutputToggle()  | bool    | uint8_t  | set the PWM value of the Red led (0 .. 255)|
-| setOutputPulse     | bool    | uint8_t  | set the PWM value of the Green led (0 .. 255)|
+| setOutputPulse()   | bool    | uint8_t  | set the PWM value of the Green led (0 .. 255)|
 | setDebounceTime()  | bool    | uint8_t  | set the Debounce Time of the switch (5 .. 250 micro seconds)|
 | setMidPressTime()  | bool    | uint16_t | set the Mid Press Time of the switch (100 .. 5000 milli seconds)|
 | setLongPressTime() | bool    | uint16_t | set the Long Press Time of the switch (300 .. 10000 milli seconds)|
@@ -92,9 +92,10 @@ And the library gives you the following helpers:
 
 | Helper                 | Returns | Parms | Description |
 |:-----------------------|:-------:|:-----:|:------------|
-|isSlotPressed()          | bool    | uint8_t | true if the Button of slot is pressed
-|isSlotQuickReleased()    | bool    | uint8_t | true if the Button is released before midPressTime
-|isSlotMidReleased()      | bool    | uint8_t | true if the Button is released between midPressTime and longPressTime
+|isSlotPressed()         | bool    | uint8_t | true if the Button of slot is pressed
+|isSlotQuickReleased()   | bool    | uint8_t | true if the Button is released before midPressTime
+|isSlotMidReleased()     | bool    | uint8_t | true if the Button is released between midPressTime and longPressTime
+|isSlotLongReleased()    | bool    | uint8_t | true if the Button is released after longPressTime
 
 
 <center><img src="images/I2CRE_Factory_Parts.png"></center>
