@@ -10,7 +10,7 @@ This library gives an interface between your own program and the I2C_LaSE board.
 To use it you have to include this library in your sketch
 
 ```
-#include <#include <I2C_ExtPlus.h>
+#include <I2C_ExtPlus.h>
 ```
 
 Declare an Encoder object (declare one for every I2C_ExtPlus board):
