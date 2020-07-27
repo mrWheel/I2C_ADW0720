@@ -1,0 +1,50 @@
+###########################################
+# Syntax I2C_LaSE library
+###########################################
+
+###########################################
+# Datatypes (KEYWORD1)
+###########################################
+
+I2CEXTPL               	KEYWORD1
+SLT_PRESSED_BIT         KEYWORD1
+SLT_QUICKRELEASE_BIT    KEYWORD1
+SLT_MIDRELEASE_BIT      KEYWORD1
+SLT_LONGRELEASE_BIT     KEYWORD1
+SLT_HIGH_BIT            KEYWORD1
+SLT_TOCKLE_BIT_BIT      KEYWORD1
+SLT_PULSE_BIT           KEYWORD1
+CMD_READCONF         	  KEYWORD1
+CMD_WRITECONF        	  KEYWORD1
+CMD_REBOOT           	  KEYWORD1
+
+
+###########################################
+# Methods and Functions (KEYWORD2)
+###########################################
+
+isConnected             KEYWORD2
+getSysStatus            KEYWORD2
+getSlotStatus           KEYWORD2
+getWhoAmI               KEYWORD2
+getDebounceTime         KEYWORD2
+getMidPressTime         KEYWORD2
+getLongPressTime        KEYWORD2
+getMajorRelease         KEYWORD2
+getMinorRelease         KEYWORD2
+getModeSettings         KEYWORD2
+
+setOutputToggle         KEYWORD2
+setOutputPulse          KEYWORD2
+setDebounceTime         KEYWORD2
+setMidPressTime         KEYWORD2
+setLongPressTime        KEYWORD2
+writeCommand            KEYWORD2
+setI2Caddress           KEYWORD2
+
+isslotPressed           KEYWORD2
+isslotQuickReleased     KEYWORD2
+isslotMidReleased       KEYWORD2
+isslotLongReleased      KEYWORD2
+
+printRegister           KEYWORD2
