@@ -96,44 +96,44 @@ void receiveEvent(int numberOfBytesReceived)
   //starting at the registerNumber (the first byte received)
   for (byte x = 0 ; x < numberOfBytesReceived - 1 ; x++) {
     uint8_t temp = Wire.read();
-    if ( (x + registerNumber) < sizeof(registerLayout)) {
+    if ( (x + registerNumber) < sizeof(registerLayout)) 
+    {
       //Store the result into the register map
+      if ( (registerNumber >= 0x01) && (registerNumber <= 0x0B) )
+            { /* Can't update RO registers */ }
+      else  registerPointer[registerNumber + x] = temp;
       if ( registerNumber == _SLOTMODES ) // a change to the slotModes is made
       {
+        Debug("SLOTMODES!!>>:");
+        showRegister(1, &registerStack.slotModes);
+        Debugln(); DebugFlush();
         for (uint8_t slt=0; slt<8; slt++)
         {
-          //-- has this slot changed?
-          if ( BIT_IS_HIGH(registerStack.slotModes, slt) != BIT_IS_HIGH(temp, slt) )
+          //-- if it's output change it!
+          if ( BIT_IS_HIGH(registerStack.slotModes, slt) )   //-- output pin
           {
-            //-- if it's output change it!
-            if ( BIT_IS_HIGH(registerStack.slotModes, slt) )   //-- output pin
-            {
-              setSlotAsInput(slt);
-            }
-            else  
-            {
-              setSlotAsOutput(slt);
-            }
+            setSlotAsInput(slt);
+          }
+          else    //-- change input pin
+          {
+            setSlotAsOutput(slt);
           }
         }
-      }
-      registerPointer[registerNumber + x] = temp;
+      } // _SLOTMODES
     }
   }
-
-
 
   if (registerNumber == _TMPSLOTNR)  // temp.slot Nr!!!
   { 
 #if defined (__AVR_ATmega328P__)
-    Debug("slot: "); Debug(registerStack.tmpSlotNr); DebugFlash();
+    Debug("slot: "); Debug(registerStack.tmpSlotNr); DebugFlush();
     Debug("   set to:"); Debugln(registerStack.tmpOutputFunc, BIN); 
     Debug(" highTime:"); Debugln(registerStack.tmpPulseHighTime); 
     Debug("  lowTime:"); Debugln(registerStack.tmpPulseLowTime); 
     Debug(" Duration:"); Debugln(registerStack.tmpStateDuration); 
-    DebugFlash();
+    DebugFlush();
 #endif
-    setOutput(registerStack.tmpSlotNr, registerStack.tmpOutputFunc
+    setOutputFunc(registerStack.tmpSlotNr, registerStack.tmpOutputFunc
                                      , registerStack.tmpPulseHighTime
                                      , registerStack.tmpPulseLowTime
                                      , registerStack.tmpStateDuration);
@@ -159,13 +159,13 @@ void requestEvent()
   for (uint8_t x = 0; ( (x < 4) &&(x + registerNumber) < (sizeof(registerLayout) - 1) ); x++) {
     Wire.write(registerPointer[(x + registerNumber)]);
   }
-  //-- registerNumber == 0 => sysStatus
-  //-- registerNumber == 1 => slotStatus[0]
-  //-- registerNumber == 8 => slotStatus[7]
-  if ( (registerNumber >= 0x00) && (registerNumber <= 0x08) )
+  //-- registerNumber == 0x03 => sysStatus
+  //-- registerNumber == 0x04 => slotStatus[0]
+  //-- registerNumber == 0x0B => slotStatus[7]
+  if ( (registerNumber >= 0x03) && (registerNumber <= 0x0B) )
   {
     #if defined (__AVR_ATmega328P__)
-      if (registerNumber > 0)
+      if (registerNumber >= 0x03)
       {
         Debug("requestEvent(b): Reset byte[0x0"); Debug(registerNumber, HEX); Debugln("] ..");
       }

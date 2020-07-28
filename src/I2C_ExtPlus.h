@@ -2,7 +2,7 @@
 ***************************************************************************  
 **
 **  File    : I2C_ExtPlus.h
-**  Version : v1.0
+**  Version : v1.2  - 28-07-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -29,27 +29,27 @@ enum  {  CMD_READCONF, CMD_WRITECONF, CMD_DUM2, CMD_DUM3, CMD_DUM4
 
 // Map to the various registers on the I2C Rotary Encoder
 enum boardRegisters {
-  I2CEXTPL_SYSSTATUS      = 0x00,
-  I2CEXTPL_SLOTSTATUS     = 0x01, // SLOT_STATUS_0!
-  I2CEXTPL_SLOTSTATUS_1   = 0x02,
-  I2CEXTPL_SLOTSTATUS_2   = 0x03,
-  I2CEXTPL_SLOTSTATUS_3   = 0x04,
-  I2CEXTPL_SLOTSTATUS_4   = 0x05,
-  I2CEXTPL_SLOTSTATUS_5   = 0x06,
-  I2CEXTPL_SLOTSTATUS_6   = 0x07,
-  I2CEXTPL_SLOTSTATUS_7   = 0x08,
-  I2CEXTPL_ADDRESS        = 0x09,
-  I2CEXTPL_MAJORRELEASE   = 0x0A,
-  I2CEXTPL_MINORRELEASE   = 0x0B,
-  I2CEXTPL_DEBOUNCETIME   = 0x0C,  // microSeconds
-  I2CEXTPL_MIDPRESSTIME   = 0x0D,  // 2 bytes 0x0D 0x0E
-  I2CEXTPL_LONGPRESSTIME  = 0x0F,  // 2 bytes 0x0F 0x10
-  I2CEXTPL_SLOT_NR        = 0x11,
-  I2CEXTPL_SLOT_FUNC      = 0x12,
-  I2CEXTPL_SLOT_LOWTIME   = 0x13, // 2 bytes 0x13 0x14
-  I2CEXTPL_SLOT_HIGHTIME  = 0x15, // 2 bytes 0x15 0x16
-  I2CEXTPL_SLOT_DURATION  = 0x17, // 2 bytes 0x17 0x18
-  I2CEXTPL_SLOT_MODES     = 0x19,
+  I2CEXTPL_ADDRESS        = 0x00,
+  I2CEXTPL_MAJORRELEASE   = 0x01,
+  I2CEXTPL_MINORRELEASE   = 0x02,
+  I2CEXTPL_SYSSTATUS      = 0x03,
+  I2CEXTPL_SLOTSTATUS     = 0x04, // SLOT_STATUS_0!
+  I2CEXTPL_SLOTSTATUS_1   = 0x05,
+  I2CEXTPL_SLOTSTATUS_2   = 0x06,
+  I2CEXTPL_SLOTSTATUS_3   = 0x07,
+  I2CEXTPL_SLOTSTATUS_4   = 0x08,
+  I2CEXTPL_SLOTSTATUS_5   = 0x09,
+  I2CEXTPL_SLOTSTATUS_6   = 0x0A,
+  I2CEXTPL_SLOTSTATUS_7   = 0x0B,
+  I2CEXTPL_SLOT_MODES     = 0x0C,
+  I2CEXTPL_DEBOUNCETIME   = 0x0D,  // microSeconds
+  I2CEXTPL_MIDPRESSTIME   = 0x0E,  // 2 bytes 0x0E 0x0F
+  I2CEXTPL_LONGPRESSTIME  = 0x10,  // 2 bytes 0x10 0x11
+  I2CEXTPL_SLOT_NR        = 0x12,
+  I2CEXTPL_SLOT_FUNC      = 0x13,
+  I2CEXTPL_SLOT_LOWTIME   = 0x14, // 2 bytes 0x14 0x15
+  I2CEXTPL_SLOT_HIGHTIME  = 0x16, // 2 bytes 0x16 0x17
+  I2CEXTPL_SLOT_DURATION  = 0x18, // 2 bytes 0x18 0x19
   I2CEXTPL_MODESETTINGS   = 0x1A,
   //----
   I2CEXTPL_COMMAND        = 0xF0   // -> this is NOT a "real" register!!
@@ -106,9 +106,9 @@ public:
   void printRegister(HardwareSerial *serOut, size_t const size, void const * const ptr);
 
 private:
-  TwoWire   *_I2Cbus;
-  uint8_t   _I2Caddress;
-  uint32_t  _readTimer;
+  TwoWire             *_I2Cbus;
+  uint8_t             _I2Caddress;
+  uint32_t            _readTimer;
   volatile uint8_t   _SYSstatus;
   volatile uint8_t   _SLOTmodes;
   volatile uint8_t   _SLOTstatus[8];

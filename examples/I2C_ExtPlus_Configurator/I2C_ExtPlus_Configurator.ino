@@ -3,10 +3,10 @@
 **
 **  Program     : I2C_ExtPlus_Configurator
 */
-#define _FW_VERSION  "v1.1 (27-07-2020)"
+#define _FW_VERSION  "v1.2 (28-07-2020)"
 /*
 **  Description : With this program you can configure 
-**                I2C_SLOT and Switch extender boards
+**                I2C extender boards
 **    
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -18,6 +18,11 @@
 #define  I2C_DEFAULT_ADDRESS  0x18    // the 7-bit address 
 //#define _SDA                  4
 //#define _SCL                  5
+
+#define SETBIT(regByte, bit)     (regByte) |=  (1 << (bit))
+#define CLEARBIT(regByte, bit)   (regByte) &= ~(1 << (bit))
+#define BIT_IS_HIGH(regByte, bit)  ((regByte) & (1<<(bit)))
+#define BIT_IS_LOW(regByte, bit)   (!((regByte) & (1<<(bit))))
 
 #define LED1                  0
 #define LED2                  1
@@ -36,6 +41,8 @@ static byte   I2C_Address = 0x00, I2C_newAddress;
 
 byte          whoAmI;
 byte          majorRelease, minorRelease;
+uint8_t       sysStatus, slotStatus, slotModes;
+
 uint32_t      builtinLedTimer;
 
 bool          inConfigureMode   = false;
@@ -104,32 +111,38 @@ byte findSlaveAddress(byte startAddress)
 
 
 //===========================================================================================
-void handleExtPlus()
+void handleInputSlots(uint8_t slotNr)
 {
-  byte statusReg = ExtenderBoard.getSlotStatus(BUTTON1);
-  if (statusReg == 0) return;
-
+  slotStatus = ExtenderBoard.getSlotStatus(slotNr);
+  if (slotStatus == 0) return;
+  
   digitalWrite(LED_BUILTIN, LOW);
   builtinLedTimer = millis();
 
-  Serial.print(F("StatusReg ["));
-  ExtenderBoard.printRegister(&Serial, sizeof(statusReg), &statusReg);
-  Serial.println(F("]"));
+  Serial.print(F("sysStatus: "));
+  ExtenderBoard.printRegister(&Serial, 1, &sysStatus);
+  sysStatus = ExtenderBoard.getSysStatus();
+  Serial.print(F(", slotStatus: "));
+  ExtenderBoard.printRegister(&Serial, 1, &slotStatus);
+  Serial.println();
+  
+  Serial.print(F("-------> Slot["));
+  Serial.print(slotNr);
+  if (ExtenderBoard.isSlotPressed(slotNr) ) {
+    Serial.print(F("] Pressed"));
+  }
+  if (ExtenderBoard.isSlotQuickReleased(slotNr) ) {
+    Serial.print(F("] Quick Release"));
+  }
+  if (ExtenderBoard.isSlotMidReleased(slotNr) ) {
+    Serial.print(F("] Mid Release"));
+  }
+  if (ExtenderBoard.isSlotLongReleased(slotNr) ) {
+    Serial.print(F("] Long Release"));
+  }
+  Serial.println();
 
-  if (ExtenderBoard.isSlotPressed(BUTTON1) ) {
-    Serial.println(F("-------> Button Pressed"));
-  }
-  if (ExtenderBoard.isSlotQuickReleased(BUTTON1) ) {
-    Serial.println(F("-------> Quick Release"));
-  }
-  if (ExtenderBoard.isSlotMidReleased(BUTTON1) ) {
-    Serial.println(F("-------> Mid Release"));
-  }
-  if (ExtenderBoard.isSlotLongReleased(BUTTON1) ) {
-    Serial.println(F("-------> Long Release"));
-  }
-
-} // handleExtPlus();
+} // handleInputSlots();
 
 
 //===========================================================================================
@@ -195,8 +208,19 @@ void loop()
 
   if (inConfigureMode) handleKeyInput();
 
-  handleExtPlus();
-  //animateLeds();
+  sysStatus = ExtenderBoard.getSysStatus();
+  if (sysStatus == 0) return;
+  for(uint8_t slt=0; slt<8; slt++)
+  { 
+    if (BIT_IS_HIGH(slotModes, slt) )
+    {
+      handleInputSlots(slt);
+    }
+    else
+    {
+      //animateLeds();
+    }
+  }
 
   if ((millis() - builtinLedTimer) > 2000) 
   {

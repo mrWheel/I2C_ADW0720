@@ -36,14 +36,14 @@ void handleOutput(uint8_t slotNr)
               break;
     case OUTPUT_PULSE_ON:
               //Debug("slot["); Debug(slotNr); Debugln("] PULSE_ON");
-              //Debug("highTime : "); Debugln(slot[slotNr].highTime); DebugFlash();
-              //Debug("lowTime  : "); Debugln(slot[slotNr].lowTime);  DebugFlash();
-              //Debug("duration : "); Debugln(slot[slotNr].duration); DebugFlash();
+              //Debug("highTime : "); Debugln(slot[slotNr].highTime); DebugFlush();
+              //Debug("lowTime  : "); Debugln(slot[slotNr].lowTime);  DebugFlush();
+              //Debug("duration : "); Debugln(slot[slotNr].duration); DebugFlush();
               slotWrite(slotNr, HIGH);
               if (slot[slotNr].duration > 0) 
               {
-                //Debug("millis() : "); Debugln( millis() ); DebugFlash();
-                //Debug("timer    : "); Debugln( slot[slotNr].durationTimer ); DebugFlash();
+                //Debug("millis() : "); Debugln( millis() ); DebugFlush();
+                //Debug("timer    : "); Debugln( slot[slotNr].durationTimer ); DebugFlush();
                 if (millis() > slot[slotNr].durationTimer)
                 {
                   Debugln("duration elapsed");
@@ -54,7 +54,7 @@ void handleOutput(uint8_t slotNr)
                   break;
                 }
               }
-              //Debug("highTimer  : "); Debugln( slot[slotNr].highTimer ); DebugFlash();
+              //Debug("highTimer  : "); Debugln( slot[slotNr].highTimer ); DebugFlush();
               if (millis() > slot[slotNr].highTimer)
               {
                 slot[slotNr].lowTimer = millis() + slot[slotNr].lowTime;

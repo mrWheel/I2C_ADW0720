@@ -2,7 +2,7 @@
 ***************************************************************************  
 **
 **  File    : I2C_ExtPlus.cpp
-**  Version : v1.1
+**  Version : v1.2  - 28-07-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -40,8 +40,6 @@ bool I2CEXTPL::setI2Caddress(uint8_t newAddress)
 {
   if (writeReg1Byte(I2CEXTPL_ADDRESS, newAddress)) 
   {
-    // Once the address is changed, we need to change it in the library
-    //-->?? _I2Caddress = newAddress;
     return true;
   }
   return false;
@@ -58,11 +56,12 @@ bool I2CEXTPL::setI2Caddress(uint8_t newAddress)
 bool I2CEXTPL::setModeOutput(uint8_t slotNr)
 {
   uint8_t slotMode = readReg1Byte(I2CEXTPL_SLOT_MODES);
-  printRegister(&Serial, 1, &slotMode);
+  //printRegister(&Serial, 1, &slotMode);
   slotMode &= ~_BV(slotNr);  //-- clear bit
-  delay(10);
+  //slotMode |= _BV(slotNr); //-- set bit 
   return(writeReg1Byte(I2CEXTPL_SLOT_MODES, slotMode));
-}
+
+} //  setModeOutput()
 
 // Sets specific slot as type OUTPUT
 //-------------------------------------------------------------------------------------
@@ -70,9 +69,10 @@ bool I2CEXTPL::setModeInput(uint8_t slotNr)
 {
   uint8_t slotMode = readReg1Byte(I2CEXTPL_SLOT_MODES);
   slotMode |= _BV(slotNr); //-- set bit 
-  delay(10);
+  //slotMode &= ~_BV(slotNr);  //-- clear bit
   return(writeReg1Byte(I2CEXTPL_SLOT_MODES, slotMode));
-}
+
+} //  setModeInput()
 
 // Sets specific slot as type On/Off
 //-------------------------------------------------------------------------------------
@@ -84,7 +84,9 @@ bool I2CEXTPL::setOutputToggle(uint8_t slotNr, bool isHigh, uint16_t duration)
   writeReg1Byte(I2CEXTPL_SLOT_FUNC, slotFunc);
   writeReg2Byte(I2CEXTPL_SLOT_DURATION, duration);
   return(writeReg1Byte(I2CEXTPL_SLOT_NR, slotNr));
-}
+
+} //  setOutputToggle()
+
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::setOutputPulse(uint8_t slotNr, uint16_t hTime, uint16_t lTime, uint16_t duration)
 {
@@ -95,28 +97,32 @@ bool I2CEXTPL::setOutputPulse(uint8_t slotNr, uint16_t hTime, uint16_t lTime, ui
   writeReg2Byte(I2CEXTPL_SLOT_HIGHTIME, lTime);
   writeReg2Byte(I2CEXTPL_SLOT_DURATION, duration);
   return(writeReg1Byte(I2CEXTPL_SLOT_NR, slotNr));
-}
+
+} //  setOutputPulse()
 
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::setDebounceTime(uint8_t microsecs)
 {
   return (writeReg1Byte(I2CEXTPL_DEBOUNCETIME, microsecs));
-}
+} //  setDebounceTime()
+
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::setMidPressTime(uint16_t millisecs)
 {
   return (writeReg2Byte(I2CEXTPL_MIDPRESSTIME, millisecs));
-}
+} //  setMidPressTime()
+
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::setLongPressTime(uint16_t millisecs)
 {
   return (writeReg2Byte(I2CEXTPL_LONGPRESSTIME, millisecs));
-}
+} //  setLongPressTime()
+
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::writeCommand(byte command)
 {
   return (writeReg1Byte(I2CEXTPL_COMMAND, command));
-}
+} //  writeCommand()
 
 //-------------------------------------------------------------------------------------
 //-------------------------- GETTERS --------------------------------------------------
@@ -125,82 +131,74 @@ bool I2CEXTPL::writeCommand(byte command)
 //-------------------------------------------------------------------------------------
 uint8_t I2CEXTPL::getSysStatus()
 {
-  while ((millis() - _readTimer) < _READDELAY) 
-  {
-    delay(1);
-  }
-  _readTimer = millis();
-  _SYSstatus = (uint8_t)readReg1Byte(I2CEXTPL_SYSSTATUS);
+  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CEXTPL_SYSSTATUS);
+  _SYSstatus = tmpStatus;
   return (_SYSstatus);
-}
-
-//-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getSlotModes()
-{
-  while ((millis() - _readTimer) < _READDELAY) 
-  {
-    delay(1);
-  }
-  _readTimer = millis();
-  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CEXTPL_SLOT_MODES);
-  _SLOTmodes = (uint8_t)tmpStatus;
-  return (_SLOTmodes);
-}
+} //  getSysStatus()
 
 //-------------------------------------------------------------------------------------
 uint8_t I2CEXTPL::getSlotStatus(uint8_t slotNr)
 {
-  while ((millis() - _readTimer) < _READDELAY) 
-  {
-    delay(1);
-  }
-  _readTimer = millis();
   uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CEXTPL_SLOTSTATUS + slotNr);
   _SLOTstatus[slotNr] = (uint8_t)tmpStatus;
   return (_SLOTstatus[slotNr]);
-}
+} //  getSlotStatus()
+
+//-------------------------------------------------------------------------------------
+uint8_t I2CEXTPL::getSlotModes()
+{
+  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CEXTPL_SLOT_MODES);
+  _SLOTmodes = (uint8_t)tmpStatus;
+  return (_SLOTmodes);
+} // getSlotModes()
 
 //-------------------------------------------------------------------------------------
 int8_t I2CEXTPL::getWhoAmI()
 {
   return (readReg1Byte(I2CEXTPL_ADDRESS));
-}
+} //  getWhoAmI()
 
 //-------------------------------------------------------------------------------------
 uint8_t I2CEXTPL::getDebounceTime()
 {
   return (readReg1Byte(I2CEXTPL_DEBOUNCETIME));
-}
+} //  getDebounceTime()
+
 //-------------------------------------------------------------------------------------
 uint16_t I2CEXTPL::getMidPressTime()
 {
   return (readReg2Byte(I2CEXTPL_MIDPRESSTIME));
-}
+} //  getMidPressTime()
+
 //-------------------------------------------------------------------------------------
 uint16_t I2CEXTPL::getLongPressTime()
 {
   return (readReg2Byte(I2CEXTPL_LONGPRESSTIME));
-}
+} //  getLongPressTime()
+
 //-------------------------------------------------------------------------------------
 uint8_t I2CEXTPL::getModeSettings()
 {
   return (readReg1Byte(I2CEXTPL_MODESETTINGS));
-}
+} //  getModeSettings()
+
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::getModeSettings(uint8_t testBit)
 {
   return ( readReg1Byte(I2CEXTPL_MODESETTINGS) & (1<<testBit) );
-}
+} //  getModeSettings()
+
 //-------------------------------------------------------------------------------------
 uint8_t I2CEXTPL::getMajorRelease()
 {
   return (readReg1Byte(I2CEXTPL_MAJORRELEASE));
-}
+} //  getMajorRelease()
+
 //-------------------------------------------------------------------------------------
 uint8_t I2CEXTPL::getMinorRelease()
 {
   return (readReg1Byte(I2CEXTPL_MINORRELEASE));
-}
+} //  getMinorRelease()
 
 
 //-------------------------------------------------------------------------------------
@@ -211,68 +209,79 @@ uint8_t I2CEXTPL::getMinorRelease()
 //-------------------------------------------------------------------------------------
 uint8_t I2CEXTPL::readReg1Byte(uint8_t addr)
 {  
-  while ((millis() - _readTimer) < _READDELAY) {
+  while ((millis() - _readTimer) < _READDELAY) 
+  {
     delay(1);
   }
   _readTimer = millis();
 
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   _I2Cbus->write(addr);
-  if (_I2Cbus->endTransmission() != 0) {
+  if (_I2Cbus->endTransmission() != 0) 
+  {
     return (0); // Slave did not ack
   }
 
   _I2Cbus->requestFrom((uint8_t)_I2Caddress, (uint8_t) 1);
-  if (_I2Cbus->available()) {
+  if (_I2Cbus->available()) 
+  {
     return (_I2Cbus->read());
   }
 
+  _readTimer = millis();
   return (0); // Slave did not respond
-}
+} // readReg1Byte()
 
 // Reads an int16_t from a register @addr
 //-------------------------------------------------------------------------------------
 int16_t I2CEXTPL::readReg2Byte(uint8_t addr)
 {
-  while ((millis() - _readTimer) < _READDELAY) {
+  while ((millis() - _readTimer) < _READDELAY) 
+  {
     delay(1);
   }
   _readTimer = millis();
 
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   _I2Cbus->write(addr);
-  if (_I2Cbus->endTransmission() != 0) {
+  if (_I2Cbus->endTransmission() != 0) 
+  {
     return (0); // Slave did not ack
   }
 
   _I2Cbus->requestFrom((uint8_t)_I2Caddress, (uint8_t) 2);
-  if (_I2Cbus->available()) {
+  if (_I2Cbus->available()) 
+  {
     uint8_t LSB = _I2Cbus->read();
     uint8_t MSB = _I2Cbus->read();
     return ((int16_t)MSB << 8 | LSB);
   }
 
+  _readTimer = millis();
   return (0); // Slave did not respond
-}
+} // readReg2Byte()
 
 // Reads an int32_t from a register @addr
 //-------------------------------------------------------------------------------------
 int32_t I2CEXTPL::readReg4Byte(uint8_t addr)
 {
-  while ((millis() - _readTimer) < _READDELAY) {
+  while ((millis() - _readTimer) < _READDELAY) 
+  {
     delay(1);
   }
   _readTimer = millis();
 
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   _I2Cbus->write(addr);
-  if (_I2Cbus->endTransmission() != 0) {
+  if (_I2Cbus->endTransmission() != 0) 
+  {
     return (0); // Slave did not ack
   }
 
   _I2Cbus->requestFrom((uint8_t)_I2Caddress, (uint8_t) 4);
   delay(10);
-  if (_I2Cbus->available()) {
+  if (_I2Cbus->available()) 
+  {
     uint8_t LSB   = _I2Cbus->read();
     uint8_t mLSB  = _I2Cbus->read();
     uint8_t mMSB  = _I2Cbus->read();
@@ -281,8 +290,10 @@ int32_t I2CEXTPL::readReg4Byte(uint8_t addr)
     return (comb);
   }
 
+  _readTimer = millis();
   return (0); // Slave did not respond
-}
+
+} // readReg4Bytes()
 
 //-------------------------------------------------------------------------------------
 //-------------------------- WRITE TO REGISTERS ---------------------------------------
@@ -292,7 +303,8 @@ int32_t I2CEXTPL::readReg4Byte(uint8_t addr)
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::writeReg1Byte(uint8_t addr, uint8_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) {
+  while ((millis() - _readTimer) < _WRITEDELAY) 
+  {
     delay(1);
   }
   _readTimer = millis();
@@ -300,18 +312,22 @@ bool I2CEXTPL::writeReg1Byte(uint8_t addr, uint8_t val)
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   _I2Cbus->write(addr);
   _I2Cbus->write(val);
-  if (_I2Cbus->endTransmission() != 0) {
-    return (false); // Slave did not ack
+  if (_I2Cbus->endTransmission() == 0) 
+  {
+    return (true); 
   }
+  // Slave did not ack
+  _readTimer = millis();
+  return (false);
 
-  return (true);
-}
+} // writeReg1Byte()
 
 // Write a 2 byte value to a register
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::writeReg2Byte(uint8_t addr, int16_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) {
+  while ((millis() - _readTimer) < _WRITEDELAY) 
+  {
     delay(1);
   }
   _readTimer = millis();
@@ -320,19 +336,23 @@ bool I2CEXTPL::writeReg2Byte(uint8_t addr, int16_t val)
   _I2Cbus->write(addr);
   _I2Cbus->write(val & 0xFF); // LSB
   _I2Cbus->write(val >> 8);   // MSB
-  if (_I2Cbus->endTransmission() != 0) {
-    return (false); // Slave did not ack
+  if (_I2Cbus->endTransmission() == 0) 
+  {
+    return (true); 
   }
+  // Slave did not ack
+  _readTimer = millis();
+  return (false);
 
-  return (true);
-}
+} // writeReg2Bytes()
 
 
 // Write a 3 byte value to a register
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::writeReg3Byte(uint8_t addr, int32_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) {
+  while ((millis() - _readTimer) < _WRITEDELAY) 
+  {
     delay(1);
   }
   _readTimer = millis();
@@ -343,18 +363,22 @@ bool I2CEXTPL::writeReg3Byte(uint8_t addr, int32_t val)
   _I2Cbus->write(val >> 8);       // mLSB
   _I2Cbus->write(val >> 16);      // mMSB
   //_I2Cbus->write(val >> 24);    // MSB
-  if (_I2Cbus->endTransmission() != 0) {
-    return (false); // Slave did not ack
+  if (_I2Cbus->endTransmission() == 0) 
+  {
+    return (true); 
   }
+  // Slave did not ack
+  _readTimer = millis();
+  return (false);
 
-  return (true);
-}
+} // writeReg3Byte()
 
 // Write a 4 byte value to a register
 //-------------------------------------------------------------------------------------
 bool I2CEXTPL::writeReg4Byte(uint8_t addr, int32_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) {
+  while ((millis() - _readTimer) < _WRITEDELAY) 
+  {
     delay(1);
   }
   _readTimer = millis();
@@ -365,12 +389,15 @@ bool I2CEXTPL::writeReg4Byte(uint8_t addr, int32_t val)
   _I2Cbus->write(val >> 8);   // mLSB
   _I2Cbus->write(val >> 16);  // mMSB
   _I2Cbus->write(val >> 24);  // MSB
-  if (_I2Cbus->endTransmission() != 0) {
-    return (false); // Slave did not ack
+  if (_I2Cbus->endTransmission() == 0) 
+  {
+    return (true); 
   }
-
-  return (true);
-}
+  // Slave did not ack
+  _readTimer = millis();
+  return (false);
+  
+} // writeReg4Bytes()
 
 //-------------------------------------------------------------------------------------
 //-------------------------- HELPERS --------------------------------------------------
@@ -433,7 +460,7 @@ void I2CEXTPL::printRegister(HardwareSerial *serOut, size_t const size, void con
   unsigned char *b = (unsigned char*) ptr;
   unsigned char byte;
   int i, j;
-  serOut->print("(lib) [");
+  serOut->print("[");
   for (i=size-1;i>=0;i--)
   {
     if (i!=(size-1)) serOut->print(" ");

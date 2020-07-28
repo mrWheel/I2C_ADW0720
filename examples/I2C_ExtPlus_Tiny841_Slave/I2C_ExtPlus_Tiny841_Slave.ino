@@ -1,9 +1,9 @@
 /*
 **    Program : I2C_ExtPlus_Tiny841_Slave
-**    Date    : 27-07-2020
+**    Date    : 28-07-2020
 */
 #define _MAJOR_VERSION  1
-#define _MINOR_VERSION  1
+#define _MINOR_VERSION  2
 /*
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -51,15 +51,6 @@
 
 #define _I2C_DEFAULT_ADDRESS  0x18
 
-#define _LED1       0
-#define _LED2       1
-#define _LED3       2
-#define _LED4       3
-#define _SW1        4
-#define _SW2        5
-#define _SW3        6
-#define _SW4        7
-
 /*
 * see: 
 * https://www.nongnu.org/avr-libc/user-manual/using_tools.html
@@ -70,21 +61,17 @@
   #warning ATtiny841 or ATtiny84
   #define Debug(...)
   #define Debugln(...)
-  #define DebugFlash(...)
+  #define DebugFlush(...)
 
 #elif defined (__AVR_ATmega328P__)
   #define Debug(...)      Serial.print(__VA_ARGS__);
   #define Debugln(...)    Serial.println(__VA_ARGS__);
-  #define DebugFlash(...) Serial.flush(__VA_ARGS__);
+  #define DebugFlush(...) Serial.flush(__VA_ARGS__);
 
 #else
   #Error: unknow Processor type
   
 #endif
-
-
-//------ Led Functions ---------------------------------------------------------
-//enum  {  FUNC_ON, FUNC_TYPE_ONOF, FUNCT_TYPE_BLINK };
 
 //------ commands --------------------------------------------------------------
 enum  {  CMD_READCONF, CMD_WRITECONF, CMD_DUM2, CMD_DUM3, CMD_DUM4, CMD_DUM5
@@ -93,52 +80,52 @@ enum  {  CMD_READCONF, CMD_WRITECONF, CMD_DUM2, CMD_DUM3, CMD_DUM4, CMD_DUM5
 //------ slotStatus bit's ------------------------------------------------------
 enum  {  SLT_PRESSED_BIT, SLT_QUICKRELEASE_BIT, SLT_MIDRELEASE_BIT, SLT_LONGRELEASE_BIT 
        , SLT_HIGH_BIT, SLT_TOGGLE_BIT, SLT_PULSE_BIT };
-       //------ finite states Outputs ------------------------------------------
+//------ finite states Outputs -------------------------------------------------
 enum  {  OUTPUT_DEFAULT, OUTPUT_PULSE_ON, OUTPUT_PULSE_OFF};
 //------ finite states Inputs --------------------------------------------------
 enum  {  BTN_INIT, BTN_FIRST_PRESS, BTN_IS_PRESSED, BTN_FIRST_RELEASE, BTN_IS_RELEASED };
 
 
 struct registerLayout {
-  byte      sysStatus;          // 0x00
-  byte      slotStatus[8];      // 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
-  byte      address;            // 0x09
-  byte      majorRelease;       // 0x0A
-  byte      minorRelease;       // 0x0B
-  uint8_t   debounceTime;       // 0x0C
-  uint16_t  midPressTime;       // 0x0D - 2 bytes 0x0D 0x0E
-  uint16_t  longPressTime;      // 0x0F - 2 bytes 0x0F 0x10
-  byte      tmpSlotNr;          // 0x11 -->> _TMPSLOTNR must be the same offset
-  byte      tmpOutputFunc;      // 0x12
-  uint16_t  tmpPulseHighTime;   // 0x13 - 2 bytes 0x13 0x14
-  uint16_t  tmpPulseLowTime;    // 0x15 - 2 bytes 0x15 0x16
-  uint16_t  tmpStateDuration;   // 0x17 - 2 bytes 0x17 0x18
-  uint8_t   slotModes;          // 0x19 -->> _SLOTMODES must be the same offset
-  uint8_t   modeSettings;       // 0x1A -->> _MODESETTINGS must be the same offset <<--
+  byte      address;            // 0x00 (R/W)
+  byte      majorRelease;       // 0x01 (RO)
+  byte      minorRelease;       // 0x02 (RO)
+  byte      sysStatus;          // 0x03 (RO)
+  byte      slotStatus[8];      // 0x04 (RO) 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
+  uint8_t   slotModes;          // 0x0C (RO) -->> _SLOTMODES must be the same offset
+  uint8_t   debounceTime;       // 0x0D (R/W)
+  uint16_t  midPressTime;       // 0x0E (R/W) - 2 bytes 0x0E 0x0F
+  uint16_t  longPressTime;      // 0x10 (R/W) - 2 bytes 0x10 0x11
+  byte      tmpSlotNr;          // 0x12 (R/W) -->> _TMPSLOTNR must be the same offset
+  byte      tmpOutputFunc;      // 0x13 (R/W)
+  uint16_t  tmpPulseHighTime;   // 0x14 (R/W) - 2 bytes 0x14 0x15
+  uint16_t  tmpPulseLowTime;    // 0x16 (R/W) - 2 bytes 0x16 0x17
+  uint16_t  tmpStateDuration;   // 0x18 (R/W) - 2 bytes 0x18 0x19
+  uint8_t   modeSettings;       // 0x1A (R/W) -->> _MODESETTINGS must be the same offset <<--
   byte      filler[4];          // 0x1B -> 0x1B, 0x1C, 0x1D, 0x1F
 };
 
-#define _TMPSLOTNR      0x11
-#define _SLOTMODES      0x19
+#define _TMPSLOTNR      0x12
+#define _SLOTMODES      0x0C
 #define _MODESETTINGS   0x1A
-#define _CMD_REGISTER   0xF0
+#define _CMD_REGISTER   0xF0  // not a real register!
 
 //These are the defaults for all settings
 volatile registerLayout registerStack = {
-  .sysStatus =                     0,     // 0x00
-  .slotStatus =    {0,0,0,0,0,0,0,0},     // 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
-  .address =    _I2C_DEFAULT_ADDRESS,     // 0x09
-  .majorRelease =     _MAJOR_VERSION,     // 0x0A
-  .minorRelease =     _MINOR_VERSION,     // 0x0B
-  .debounceTime =                  5,     // 0x0C
-  .midPressTime =                500,     // 0x0D 2 --> 0x0D 0x0E
-  .longPressTime =              1500,     // 0x0F 2 --> 0x0F 0x10
-  .tmpSlotNr =                     0,     // 0x11
-  .tmpOutputFunc =                 0,     // 0x12
-  .tmpPulseHighTime =              0,     // 0x13 2 --> 0x13 0x14
-  .tmpPulseLowTime =               0,     // 0x15 2 --> 0x15 0x16
-  .tmpStateDuration =              0,     // 0x17 2 --> 0x17 0x18
-  .slotModes =                  0x00,     // 0x19
+  .address =    _I2C_DEFAULT_ADDRESS,     // 0x00
+  .majorRelease =     _MAJOR_VERSION,     // 0x01
+  .minorRelease =     _MINOR_VERSION,     // 0x02
+  .sysStatus =                     0,     // 0x03
+  .slotStatus =    {0,0,0,0,0,0,0,0},     // 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
+  .slotModes =                  0x00,     // 0x0C
+  .debounceTime =                  5,     // 0x0D
+  .midPressTime =                500,     // 0x0E 2 --> 0x0E 0x0F
+  .longPressTime =              1500,     // 0x10 2 --> 0x10 0x11
+  .tmpSlotNr =                     0,     // 0x12
+  .tmpOutputFunc =                 0,     // 0x13
+  .tmpPulseHighTime =              0,     // 0x14 2 --> 0x14 0x15
+  .tmpPulseLowTime =               0,     // 0x16 2 --> 0x16 0x17
+  .tmpStateDuration =              0,     // 0x18 2 --> 0x18 0x19
   .modeSettings =               0x00,     // 0x1A
   .filler =  {0xFF, 0xFF, 0xFF, 0xFF}     // 0x1B 4 --> 0x1B, 0x1C, 0x1D, 0x1F
 };
@@ -174,18 +161,20 @@ slotFields  slot[8];
 //==========================================================================
 void setSlotAsOutput(uint8_t slotNr)
 {
-  //Debug("set slot["); Debug(slotNr); Debug("] as OUTPUT ");
+  Debug("setSlotAsOutput("); Debug(slotNr); Debugln(") ");
+  DebugFlush();
+  
   switch(slotNr)
   {
     #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
-      case 0:   pinMode(10, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
-      case 1:   pinMode( 9, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
-      case 2:   pinMode( 8, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
-      case 3:   pinMode( 7, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
-      case 4:   pinMode( 3, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
-      case 5:   pinMode( 2, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
-      case 6:   pinMode( 1, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
-      case 7:   pinMode( 0, OUTPUT); slot[slotNr].state = OUTPUT_DEFAULT; break;
+      case 0:   pinMode(10, OUTPUT); break;
+      case 1:   pinMode( 9, OUTPUT); break;
+      case 2:   pinMode( 8, OUTPUT); break;
+      case 3:   pinMode( 7, OUTPUT); break;
+      case 4:   pinMode( 3, OUTPUT); break;
+      case 5:   pinMode( 2, OUTPUT); break;
+      case 6:   pinMode( 1, OUTPUT); break;
+      case 7:   pinMode( 0, OUTPUT); break;
     #endif
     #if defined (__AVR_ATmega328P__)
       case 0:   pinMode( 8, OUTPUT); break;
@@ -199,13 +188,16 @@ void setSlotAsOutput(uint8_t slotNr)
     #endif
   }
   CLEARBIT(registerStack.slotModes, slotNr);
+  slot[slotNr].state = OUTPUT_DEFAULT; 
 
 } // setSlotAsOutput()
 
 //==========================================================================
 void setSlotAsInput(uint8_t slotNr)
 {
-  //Debug("set slot["); Debug(slotNr); Debug("] as INPUT  ");
+  Debug("setSlotAsInput("); Debug(slotNr); Debugln(") ");
+  DebugFlush();
+  
   switch(slotNr)
   {
     #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
@@ -375,11 +367,11 @@ void activatePulseOutput(uint8_t slotNr, uint16_t setHighTime
   slot[slotNr].lowTimer      = millis() + setLowTime;
   slot[slotNr].state         = OUTPUT_PULSE_ON;
 
-  Debug("activatePulseOutput("); Debug(slotNr);  Debugln("):"); DebugFlash();
-  Debugln(slot[slotNr].highTime); DebugFlash();
-  Debugln(slot[slotNr].lowTime);  DebugFlash();
-  Debugln(slot[slotNr].duration); DebugFlash();
-  Debugln(slot[slotNr].state);    DebugFlash();
+  Debug("activatePulseOutput("); Debug(slotNr);  Debugln("):"); DebugFlush();
+  Debugln(slot[slotNr].highTime); DebugFlush();
+  Debugln(slot[slotNr].lowTime);  DebugFlush();
+  Debugln(slot[slotNr].duration); DebugFlush();
+  Debugln(slot[slotNr].state);    DebugFlush();
 
 } // activatePulseOutput()
 
@@ -388,7 +380,7 @@ void activatePulseOutput(uint8_t slotNr, uint16_t setHighTime
 void activateToggleOutput(uint8_t slotNr, bool outputIsHigh, uint16_t stateDuration)
 {
 
-  Debug("activateToggleOutput("); Debug(slotNr); Debugln(")..");DebugFlash();
+  Debug("activateToggleOutput("); Debug(slotNr); Debugln(")..");DebugFlush();
   slot[slotNr].durationTimer = millis() + stateDuration;
   slot[slotNr].duration      = stateDuration;
   slot[slotNr].isHigh        = outputIsHigh;
@@ -402,7 +394,7 @@ void activateToggleOutput(uint8_t slotNr, bool outputIsHigh, uint16_t stateDurat
 
 
 //==========================================================================
-void setOutput(uint8_t slotNr, byte outputFunc
+void setOutputFunc(uint8_t slotNr, byte outputFunc
                              , uint16_t pulseHighTime
                              , uint16_t pulseLowTime
                              , uint16_t stateDuration)
@@ -410,28 +402,8 @@ void setOutput(uint8_t slotNr, byte outputFunc
   bool outputIsHigh;
   uint8_t func = 0;
 
-  Debug("outputFunc: "); Debug(outputFunc, BIN); DebugFlash();
-  // (((p) & _BV(b)) != 0)
-  /****
-  if ( BIT_IS_HIGH(outputFunc, SLT_TOGGLE_BIT) ) 
-  {
-    func = 1;
-    Debug(" ->function: 1 (toggle)"); 
-  }
-  else if ( BIT_IS_HIGH(outputFunc, SLT_PULSE_BIT) ) 
-  {
-    func = 2;
-    Debug(" ->function: 2 (pulse)");
-  }
-  else 
-  {
-    Debug(" -> oeps... don't know :-( => ["); 
-    Debug(outputFunc); 
-    Debug("] ");
-  }
-  
-  Debugln(); DebugFlash();
-  ****/
+  Debug("outputFunc: "); Debug(outputFunc, BIN); DebugFlush();
+
   if ( BIT_IS_HIGH(outputFunc, SLT_TOGGLE_BIT) )   // Function is On/Off
   {
     Debug("activateToggleOutput() slot["); Debug(slotNr); Debug("]==> ");
@@ -445,27 +417,30 @@ void setOutput(uint8_t slotNr, byte outputFunc
     activatePulseOutput(slotNr, pulseHighTime, pulseLowTime, stateDuration);
   }
 
-} // setOutput()
+} // setOutputFunc()
 
 
 //==========================================================================
 void updateSlotModes()
 {
-  Debug("slotMode --> ");
+  Debug("updateSlotModes(): slotMode --> ");
   showRegister(1, &registerStack.slotModes);
   Debugln();
   for (uint8_t slt=0; slt<8; slt++)
   {
+    Debug("set slot["); Debug(slt); 
     if ( BIT_IS_HIGH(registerStack.slotModes, slt) )   //-- input pin
     {
+      Debugln("] to input");
       setSlotAsInput(slt);
     }
     else
     {
+      Debugln("] to output");
       setSlotAsOutput(slt);
     }
   }
-  Debug("slotMode ==> ");
+  Debug("updateSlotModes(): slotMode ==> ");
   showRegister(1, &registerStack.slotModes);
   Debugln();
   
@@ -481,43 +456,11 @@ void setup()
   Debugln("\n\rI2C_Lase_Tiny841_Slave startup ..\r\n");
 #endif
 
-  setSlotAsInput(_SW1);
-  setSlotAsInput(_SW2);
-  setSlotAsInput(_SW3);
-  setSlotAsInput(_SW4);
-  setSlotAsOutput(_LED1);
-  setSlotAsOutput(_LED2);
-  setSlotAsOutput(_LED3);
-  setSlotAsOutput(_LED4);
+  
+  readConfig();
 
-  //---------------------------------------------------------------
-  //-------------- now set Pulse Output -----------------------------
-  //---------------------------------------------------------------
-  //-- Pulse Output Slots (On) -
-  for (int b=0; b<3; b++) 
-  {
-    for (uint8_t s=0; s<8; s++)
-    {
-      // only handle output slots
-      if ( BIT_IS_HIGH(registerStack.slotModes, s) ) continue;
-      slotWrite(s, HIGH);
-      Debug("H");
-      delay(100);
-    }
-    delay(100);
-    for (uint8_t s=0; s<8; s++)
-    {
-      // only handle output slots
-      if ( BIT_IS_HIGH(registerStack.slotModes, s) ) continue;
-      slotWrite(s, LOW);
-      Debug("L");
-      delay(50);
-    }
-  }
-  Debugln();
-  
-  //-->>> readConfig();
-  
+  updateSlotModes();
+
   //---------------------------------------------------------------
   //-------------- now set Pulse Output -----------------------------
   //---------------------------------------------------------------
@@ -547,11 +490,15 @@ void setup()
   
   startI2C();
   
-  activatePulseOutput(_LED1, 300, 500, 0);
-  activatePulseOutput(_LED2, 300, 100, 0);
-  activatePulseOutput(_LED3, 300, 200, 0);
-  activatePulseOutput(_LED4, 300, 300, 0);
-
+  for (int8_t s=0; s<8; s++)
+  {
+    if (BIT_IS_LOW(registerStack.slotModes, s))
+    {
+      activateToggleOutput(s, HIGH, 500);
+      delay(50);
+    }
+  }
+  
   registerStack.sysStatus = 0;
   for(uint8_t r=0; r<7; r++)  registerStack.slotStatus[r] = 0;
   
@@ -595,7 +542,6 @@ void loop()
     //-- test if slot is set as input (default) 
     if (BIT_IS_HIGH(registerStack.slotModes, s) )  
     {
-      //handleInput(s, slot[s]);
       handleInput(s);
     }
     else  // no, its an output slot!

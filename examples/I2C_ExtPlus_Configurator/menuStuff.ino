@@ -2,7 +2,7 @@
 /*
 ***************************************************************************  
 **
-**  Program     : menuStuff (part of I2C_Configurator)
+**  Program     : menuStuff (part of I2C_ExtPlus_Configurator)
 **    
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -51,7 +51,8 @@ void handleKeyInput()
   char    inChar;
   int32_t val;
   uint8_t command = 0;
-  uint8_t modeReg;
+  volatile uint8_t slotNr = 0;
+  
   while (Serial.available() > 0) 
   {
     delay(1);
@@ -60,6 +61,20 @@ void handleKeyInput()
 
     switch(inChar) 
     {
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+            slotNr = (int)(inChar) - 48;
+            val = readNumber("set Slot as (0=Output, 1=Input)", 0, 1);
+            if (val == 0) ExtenderBoard.setModeOutput(slotNr);
+            if (val == 1) ExtenderBoard.setModeInput(slotNr);
+            break;
+                        
       case 'A':
             I2C_newAddress = readNumber("Change I2C address (dec)", 1, 127);
             if (!ExtenderBoard.setI2Caddress(I2C_newAddress & 0x7F)) 
@@ -136,6 +151,7 @@ void handleKeyInput()
             {
               Serial.println(F("Error reading from EEPROM"));
             }
+            slotModes = ExtenderBoard.getSlotModes();
             break;
       case 'X':
             if (ExtenderBoard.writeCommand(_BV(CMD_REBOOT))) 
@@ -155,6 +171,7 @@ void handleKeyInput()
             break;
 
       default:
+            slotModes = ExtenderBoard.getSlotModes();
             Serial.println(F("\n===================================="));
             Serial.println(F(  "=========== Main menu =============="));
             Serial.println(F(  "===================================="));
@@ -163,6 +180,9 @@ void handleKeyInput()
             Serial.print(F("."));
             Serial.print(minorRelease);
             Serial.println(F("]============================"));
+            Serial.print(F(" 0-9 set Slot (0=Output, 1=Input) ["));
+            ExtenderBoard.printRegister(&Serial, 1, &slotModes);
+            Serial.println("]");
             Serial.print(F("*A.  Change I2C address .............. (is now [0x"));
             Serial.print(I2C_Address, HEX);
             Serial.print(F(", dec"));

@@ -34,6 +34,8 @@ getMajorRelease         KEYWORD2
 getMinorRelease         KEYWORD2
 getModeSettings         KEYWORD2
 
+setModeOutput           KEYWORD2
+setModeInput            KEYWORD2
 setOutputToggle         KEYWORD2
 setOutputPulse          KEYWORD2
 setDebounceTime         KEYWORD2
