@@ -59,14 +59,16 @@ void loop()
 }	// loop()
 ```
 
-<center><img src="images/I2C_RotaryEncoder_v22-PCB_top.png"></center>
+<center><img src="images/I2C-ADW0720-1.jpg"></center>
 
 The library gives you the following setters:
 
 | Setter             | Returns | Parms    | Description             |
 |:-------------------|:-------:|:---------|:------------------------|
-| setOutputToggle()  | bool    | uint8_t  | set the PWM value of the Red led (0 .. 255)|
-| setOutputPulse()   | bool    | uint8_t  | set the PWM value of the Green led (0 .. 255)|
+| setModeOutput()    | bool    | uint8_t  | set (slot) as OUTPUT pin|
+| setModeInput()     | bool    | uint8_t  | set (slot) as INPUT-PULLUP pin|
+| setOutputToggle()  | bool    | uint8_t, bool, uint16_t  | Toggel (slot, on/off, duration (ms))|
+| setOutputPulse()   | bool    | uint8_t, uint16_t, uint16_t, uint16_t  | set pulse (slot, on (ms), off (ms), duration (ms))|
 | setDebounceTime()  | bool    | uint8_t  | set the Debounce Time of the switch (5 .. 250 micro seconds)|
 | setMidPressTime()  | bool    | uint16_t | set the Mid Press Time of the switch (100 .. 5000 milli seconds)|
 | setLongPressTime() | bool    | uint16_t | set the Long Press Time of the switch (300 .. 10000 milli seconds)|
@@ -98,4 +100,4 @@ And the library gives you the following helpers:
 |isSlotLongReleased()    | bool    | uint8_t | true if the Button is released after longPressTime
 
 
-<center><img src="images/I2CRE_Factory_Parts.png"></center>
+<center><img src="images/Pinout_x41.jpg"></center>
