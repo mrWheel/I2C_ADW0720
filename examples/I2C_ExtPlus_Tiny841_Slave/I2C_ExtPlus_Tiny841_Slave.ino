@@ -1,9 +1,9 @@
 /*
 **    Program : I2C_ExtPlus_Tiny841_Slave
-**    Date    : 28-07-2020
+**    Date    : 31-07-2020
 */
 #define _MAJOR_VERSION  1
-#define _MINOR_VERSION  2
+#define _MINOR_VERSION  3
 /*
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -439,6 +439,7 @@ void updateSlotModes()
       Debugln("] to output");
       setSlotAsOutput(slt);
     }
+    CLEARBIT(registerStack.sysStatus, slt);
   }
   Debug("updateSlotModes(): slotMode ==> ");
   showRegister(1, &registerStack.slotModes);

@@ -3,7 +3,7 @@
 **
 **  Program     : I2C_ExtPlus_Basic
 */
-#define _FW_VERSION  "v1.2 (28-07-2020)"
+#define _FW_VERSION  "v1.3 (31-07-2020)"
 /*
 **  Description : Demo "howto" use I2C_ExtPlus board
 **
@@ -12,6 +12,8 @@
 **  TERMS OF USE: MIT License. See bottom of file.
 ***************************************************************************
 */
+
+//#define VERBOSE   // uncomment for max verbosity
 
 #define SETBIT(regByte, bit)       ((regByte) |=  (1 << (bit)))
 #define CLEARBIT(regByte, bit)     ((regByte) &= ~(1 << (bit)))
@@ -53,20 +55,25 @@ void handleInput()
   sysStatus = ExtPlusBrd1.getSysStatus();
   if (sysStatus == 0) return;
 
-/*
-  Serial.print("sysStatus: ");
-  ExtPlusBrd1.printRegister(&Serial, sizeof(sysStatus), &sysStatus);
-  slotModes = ExtPlusBrd1.getSlotModes();
-  Serial.print(", slotModes: ");
-  ExtPlusBrd1.printRegister(&Serial, sizeof(slotModes), &slotModes);
-  Serial.println();
-*/  
+  #ifdef VERBOSE
+    Serial.print("sysStatus: ");
+    ExtPlusBrd1.printRegister(&Serial, sizeof(sysStatus), &sysStatus);
+    slotModes = ExtPlusBrd1.getSlotModes();
+    Serial.print(", slotModes: ");
+    ExtPlusBrd1.printRegister(&Serial, sizeof(slotModes), &slotModes);
+    Serial.println();
+  #endif
+  
   if ( BIT_IS_HIGH(sysStatus, SW1) )  
   {
     statusReg = ExtPlusBrd1.getSlotStatus(SW1);
-    //Serial.print("slotStatus[SW1(slot "); Serial.print(SW1); Serial.print(")]: ");
-    //ExtPlusBrd1.printRegister(&Serial, 1, &statusReg);
-    //Serial.println();
+    #ifdef VERBOSE
+      Serial.print("sysStatus: ");
+      ExtPlusBrd1.printRegister(&Serial, sizeof(sysStatus), &sysStatus);
+      Serial.print(", slotStatus[SW1(slot "); Serial.print(SW1); Serial.print(")]: ");
+      ExtPlusBrd1.printRegister(&Serial, 1, &statusReg);
+      Serial.println();
+    #endif
     
     if (ExtPlusBrd1.isSlotPressed(SW1) ) 
     {

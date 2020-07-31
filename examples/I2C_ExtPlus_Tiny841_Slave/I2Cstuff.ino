@@ -92,8 +92,8 @@ void receiveEvent(int numberOfBytesReceived)
     normalizeSettings();
   }
 
-  //Begin recording the following incoming bytes to the temp memory map
-  //starting at the registerNumber (the first byte received)
+  //-- Begin recording the following incoming bytes to the temp memory map
+  //-- starting at the registerNumber (the first byte received)
   for (byte x = 0 ; x < numberOfBytesReceived - 1 ; x++) {
     uint8_t temp = Wire.read();
     if ( (x + registerNumber) < sizeof(registerLayout)) 
@@ -160,15 +160,31 @@ void requestEvent()
     Wire.write(registerPointer[(x + registerNumber)]);
   }
   //-- registerNumber == 0x03 => sysStatus
+  //-- [7][6][5][4][3][2][1][0]  <--- sysStatus register bits
+  //--  ^  ^  ^        ^  ^  ^
+  //--  |  |  |        |  |  +-- <-- 1 if slot0 needs attention
+  //--  |  |  |        |  +----- <-- 1 if slot1 needs attention
+  //--  |  |  |        +-------- <-- 1 if slot2 needs attention
+  //--  |  |  |  also for 3, 4 and 5
+  //--  |  +-------------------- <-- 1 if slot6 needs attention
+  //--  +----------------------- <-- 1 if slot7 needs attention
+  //--
   //-- registerNumber == 0x04 => slotStatus[0]
+  //-- [7][6][5][4][3][2][1][0]  <--- slotStatus[x] register bits
+  //--              ^  ^  ^  ^ 
+  //--              |  |  |  +--------------> 1 if Button pressed
+  //--              |  |  +-----------------> 1 if Buttob Quick Released
+  //--              |  +--------------------> 1 if Buttob Mid Released
+  //--              +-----------------------> 1 if Buttob Long Released
+  //--
   //-- registerNumber == 0x0B => slotStatus[7]
-  if ( (registerNumber >= 0x03) && (registerNumber <= 0x0B) )
+  if ( (registerNumber >= 0x04) && (registerNumber <= 0x0B) )
   {
+    //--- clear sysStatus for this slot
+    CLEARBIT(registerStack.sysStatus, (registerNumber - 4));
     #if defined (__AVR_ATmega328P__)
-      if (registerNumber >= 0x03)
-      {
-        Debug("requestEvent(b): Reset byte[0x0"); Debug(registerNumber, HEX); Debugln("] ..");
-      }
+      Debug("CLEARBIT(sysStatus, "); Debug((registerNumber - 4)); Debugln(")");
+      Debug("requestEvent(b): Reset byte[0x0"); Debug(registerNumber, HEX); Debugln("] ..");
     #endif
     registerPointer[registerNumber] = 0; // reset!
   }
