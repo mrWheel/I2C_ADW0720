@@ -35,7 +35,7 @@
 #define SW3         6
 #define SW4         7
 
-#include <I2C_ExtPlus.h>
+#include <I2C_ADW0720.h>
 
 
 I2CEXTPL ExtPlusBrd1; // Create instance of the I2CEXTPL object
