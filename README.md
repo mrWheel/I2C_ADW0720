@@ -1,4 +1,4 @@
-# Arduino library for the I2C_ExtPlus boards
+# Arduino library for the I2C_ExtPlus (I2C_ADW0720) boards
 
 <p>Find the project description at <a href="https://willem.aandewiel.nl/">www.aandewiel.nl</a> (not yet but soon).</p>
 <br>
