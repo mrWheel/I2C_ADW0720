@@ -1,7 +1,7 @@
 /*
 ***************************************************************************  
 **
-**  Program     : I2C_ExtPlus_Configurator
+**  Program     : I2C_ADW0720s_Configurator
 */
 #define _FW_VERSION  "v1.2 (28-07-2020)"
 /*
@@ -33,9 +33,9 @@
 #define BUTTON3               6
 #define BUTTON4               7
 
-#include <I2C_ExtPlus.h>
+#include <I2C_ADW0720.h>
 
-I2CEXTPL ExtenderBoard; //-- Create instance of this object
+I2CADW0720    ExtenderBoard; //-- Create instance of this object
 
 static byte   I2C_Address = 0x00, I2C_newAddress;
 
@@ -70,7 +70,7 @@ byte findSlaveAddress(byte startAddress)
     else 
     {
       slaveFound = true;
-      Serial.print(F("\nFound one!\nDo you want to configure I2C ExtPlus board at @[0x"));
+      Serial.print(F("\nFound one!\nDo you want to configure I2C ADW0720 board at @[0x"));
       if (address < 0x0F) Serial.print("0");
       Serial.print(address , HEX);
       Serial.print(F("] (y/N) : "));
@@ -102,7 +102,7 @@ byte findSlaveAddress(byte startAddress)
   } 
   else 
   {
-    Serial.println(F("\n\nNo ExtPlus board found!! -> try again in 5 seconds .."));
+    Serial.println(F("\n\nNo ADW0720 board found!! -> try again in 5 seconds .."));
     delay(5000);
   }
   return 0xFF;
@@ -149,7 +149,7 @@ void handleInputSlots(uint8_t slotNr)
 void setup()
 {
   Serial.begin(115200);
-  Serial.println(F("\r\nStart I2C-Led-And_Switch Extender Configurator ....\r\n"));
+  Serial.println(F("\r\nStart I2C-ADW0720 Extender Configurator ....\r\n"));
   Serial.print(F("Setup Wire .."));
 //Wire.begin(_SDA, _SCL); // join i2c bus (address optional for master)
   Wire.begin();
@@ -174,7 +174,7 @@ void loop()
     I2C_Address = findSlaveAddress(I2C_Address);
     if (I2C_Address != 0xFF && I2C_Address != 0x00) 
     {
-      Serial.println(F("\nConnecting to  I2C-ExtPlus board .."));
+      Serial.println(F("\nConnecting to  I2C-ADW0720 board .."));
       if (ExtenderBoard.begin(Wire, I2C_Address)) 
       {
         if (!ExtenderBoard.writeCommand(_BV(CMD_READCONF))) 
