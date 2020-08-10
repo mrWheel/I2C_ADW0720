@@ -1,9 +1,9 @@
-# Arduino library for the I2C_ExtPlus (I2C_ADW0720) boards
+# Arduino library for the I2C_ADW0720 boards
 
 <p>Find the project description at <a href="https://willem.aandewiel.nl/">www.aandewiel.nl</a> (not yet but soon).</p>
 <br>
 
-This library gives an interface between your own program and the I2C_ExtPlus board.
+This library gives an interface between your own program and the I2C_ADW0720 board.
 
 <center><img src="images/I2C_Extender_Top.png"></center>
 
@@ -16,7 +16,7 @@ To use it you have to include this library in your sketch
 Declare an Extender object (declare one for every I2C_ADW0720 board):
 
 ```
-I2CEXTPL ExtenderBoard; // Create instance of the I2CEXTPL object
+I2CADW0720 ExtenderBoard; // Create instance of the I2CADW0720 object
 ```
 
 In the main <code>loop()</code>.
