@@ -1,7 +1,7 @@
 /*
 ***************************************************************************  
 **
-**  File    : I2C_ExtPlus.cpp
+**  File    : I2C_ADW0720.cpp
 **  Version : v1.2  - 28-07-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
@@ -10,7 +10,7 @@
 ***************************************************************************      
 */
 
-#include "I2C_ExtPlus.h"
+#include "I2C_ADW0720.h"
 #include "Arduino.h"
 
 // Constructor
