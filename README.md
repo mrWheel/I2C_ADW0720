@@ -1,6 +1,6 @@
 # Arduino library for the I2C_ADW0720 boards
 
-<p>Find the project description at <a href="https://willem.aandewiel.nl/">www.aandewiel.nl</a> (not yet but soon).</p>
+<p>Find the project description at <a href="https://willem.aandewiel.nl/index.php/2020/08/10/extending-gpio-pins-on-your-micro-processor/">www.aandewiel.nl</a>.</p>
 <br>
 
 This library gives an interface between your own program and the I2C_ADW0720 board.
