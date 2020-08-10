@@ -82,7 +82,7 @@ bool I2CADW0720::setOutputToggle(uint8_t slotNr, bool isHigh, uint16_t duration)
   if (isHigh) slotFunc |= (1<<SLT_HIGH_BIT);    // bit 0 is On (1) or off (0)
   slotFunc |= (1<<SLT_TOGGLE_BIT);              // bit 1 is type = on/off
   writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
-  writeReg2Byte(I2CADW0720L_SLOT_DURATION, duration);
+  writeReg2Byte(I2CADW0720_SLOT_DURATION, duration);
   return(writeReg1Byte(I2CADW0720_SLOT_NR, slotNr));
 
 } //  setOutputToggle()

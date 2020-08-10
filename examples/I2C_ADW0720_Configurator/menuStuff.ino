@@ -2,7 +2,7 @@
 /*
 ***************************************************************************  
 **
-**  Program     : menuStuff (part of I2C_ExtPlus_Configurator)
+**  Program     : menuStuff (part of I2C_ADW0720_Configurator)
 **    
 **  Copyright (c) 2020 Willem Aandewiel
 **
