@@ -1,7 +1,7 @@
 /*
 ***************************************************************************  
 **
-**  File    : I2C_ExtPlus.h
+**  File    : I2C_ADW0720.h
 **  Version : v1.2  - 28-07-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
@@ -11,8 +11,8 @@
 */
 
 
-#ifndef _I2C_EXTPLUS_H
-#define _I2C_EXTPLUS_H
+#ifndef _I2C_ADW0720_H
+#define _I2C_ADW0720_H
 #include "Arduino.h"
 #include "Wire.h"
 
