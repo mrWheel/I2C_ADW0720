@@ -14,12 +14,12 @@
 #include "Arduino.h"
 
 // Constructor
-I2CEXTPL::I2CEXTPL() { }
+I2CADW0720::I2CADW0720() { }
 
-// Initializes the I2C_LaS_Lib
-// Returns false if I2C_LaS_Lib is not detected
+// Initializes the I2C_ADW0720_Lib
+// Returns false if I2C_ADW0720_Lib is not detected
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::begin(TwoWire &wireBus, uint8_t deviceAddress)
+bool I2CADW0720::begin(TwoWire &wireBus, uint8_t deviceAddress)
 {
   _I2Cbus = &wireBus;
   _I2Cbus->begin(); 
@@ -36,9 +36,9 @@ bool I2CEXTPL::begin(TwoWire &wireBus, uint8_t deviceAddress)
 
 // Change the I2C address of this I2C Slave address to newAddress
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setI2Caddress(uint8_t newAddress)
+bool I2CADW0720::setI2Caddress(uint8_t newAddress)
 {
-  if (writeReg1Byte(I2CEXTPL_ADDRESS, newAddress)) 
+  if (writeReg1Byte(I2CADW0720_ADDRESS, newAddress)) 
   {
     return true;
   }
@@ -53,75 +53,75 @@ bool I2CEXTPL::setI2Caddress(uint8_t newAddress)
 
 // Sets specific slot as type OUTPUT
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setModeOutput(uint8_t slotNr)
+bool I2CADW0720::setModeOutput(uint8_t slotNr)
 {
-  uint8_t slotMode = readReg1Byte(I2CEXTPL_SLOT_MODES);
+  uint8_t slotMode = readReg1Byte(I2CADW0720_SLOT_MODES);
   //printRegister(&Serial, 1, &slotMode);
   slotMode &= ~_BV(slotNr);  //-- clear bit
   //slotMode |= _BV(slotNr); //-- set bit 
-  return(writeReg1Byte(I2CEXTPL_SLOT_MODES, slotMode));
+  return(writeReg1Byte(I2CADW0720_SLOT_MODES, slotMode));
 
 } //  setModeOutput()
 
 // Sets specific slot as type OUTPUT
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setModeInput(uint8_t slotNr)
+bool I2CADW0720::setModeInput(uint8_t slotNr)
 {
-  uint8_t slotMode = readReg1Byte(I2CEXTPL_SLOT_MODES);
+  uint8_t slotMode = readReg1Byte(I2CADW0720_SLOT_MODES);
   slotMode |= _BV(slotNr); //-- set bit 
   //slotMode &= ~_BV(slotNr);  //-- clear bit
-  return(writeReg1Byte(I2CEXTPL_SLOT_MODES, slotMode));
+  return(writeReg1Byte(I2CADW0720_SLOT_MODES, slotMode));
 
 } //  setModeInput()
 
 // Sets specific slot as type On/Off
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setOutputToggle(uint8_t slotNr, bool isHigh, uint16_t duration)
+bool I2CADW0720::setOutputToggle(uint8_t slotNr, bool isHigh, uint16_t duration)
 {
   byte slotFunc = 0;
   if (isHigh) slotFunc |= (1<<SLT_HIGH_BIT);    // bit 0 is On (1) or off (0)
   slotFunc |= (1<<SLT_TOGGLE_BIT);              // bit 1 is type = on/off
-  writeReg1Byte(I2CEXTPL_SLOT_FUNC, slotFunc);
-  writeReg2Byte(I2CEXTPL_SLOT_DURATION, duration);
-  return(writeReg1Byte(I2CEXTPL_SLOT_NR, slotNr));
+  writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
+  writeReg2Byte(I2CADW0720L_SLOT_DURATION, duration);
+  return(writeReg1Byte(I2CADW0720_SLOT_NR, slotNr));
 
 } //  setOutputToggle()
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setOutputPulse(uint8_t slotNr, uint16_t hTime, uint16_t lTime, uint16_t duration)
+bool I2CADW0720::setOutputPulse(uint8_t slotNr, uint16_t hTime, uint16_t lTime, uint16_t duration)
 {
   byte slotFunc = 0;
   slotFunc |= (1<<SLT_PULSE_BIT);               // bit 2 is type = Blink
-  writeReg1Byte(I2CEXTPL_SLOT_FUNC, slotFunc);
-  writeReg2Byte(I2CEXTPL_SLOT_LOWTIME, hTime);
-  writeReg2Byte(I2CEXTPL_SLOT_HIGHTIME, lTime);
-  writeReg2Byte(I2CEXTPL_SLOT_DURATION, duration);
-  return(writeReg1Byte(I2CEXTPL_SLOT_NR, slotNr));
+  writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
+  writeReg2Byte(I2CADW0720_SLOT_LOWTIME, hTime);
+  writeReg2Byte(I2CADW0720_SLOT_HIGHTIME, lTime);
+  writeReg2Byte(I2CADW0720_SLOT_DURATION, duration);
+  return(writeReg1Byte(I2CADW0720_SLOT_NR, slotNr));
 
 } //  setOutputPulse()
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setDebounceTime(uint8_t microsecs)
+bool I2CADW0720::setDebounceTime(uint8_t microsecs)
 {
-  return (writeReg1Byte(I2CEXTPL_DEBOUNCETIME, microsecs));
+  return (writeReg1Byte(I2CADW0720_DEBOUNCETIME, microsecs));
 } //  setDebounceTime()
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setMidPressTime(uint16_t millisecs)
+bool I2CADW0720::setMidPressTime(uint16_t millisecs)
 {
-  return (writeReg2Byte(I2CEXTPL_MIDPRESSTIME, millisecs));
+  return (writeReg2Byte(I2CADW0720_MIDPRESSTIME, millisecs));
 } //  setMidPressTime()
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::setLongPressTime(uint16_t millisecs)
+bool I2CADW0720::setLongPressTime(uint16_t millisecs)
 {
-  return (writeReg2Byte(I2CEXTPL_LONGPRESSTIME, millisecs));
+  return (writeReg2Byte(I2CADW0720_LONGPRESSTIME, millisecs));
 } //  setLongPressTime()
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::writeCommand(byte command)
+bool I2CADW0720::writeCommand(byte command)
 {
-  return (writeReg1Byte(I2CEXTPL_COMMAND, command));
+  return (writeReg1Byte(I2CADW0720_COMMAND, command));
 } //  writeCommand()
 
 //-------------------------------------------------------------------------------------
@@ -129,75 +129,75 @@ bool I2CEXTPL::writeCommand(byte command)
 //-------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getSysStatus()
+uint8_t I2CADW0720::getSysStatus()
 {
-  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CEXTPL_SYSSTATUS);
+  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CADW0720_SYSSTATUS);
   _SYSstatus = tmpStatus;
   return (_SYSstatus);
 } //  getSysStatus()
 
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getSlotStatus(uint8_t slotNr)
+uint8_t I2CADW0720::getSlotStatus(uint8_t slotNr)
 {
-  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CEXTPL_SLOTSTATUS + slotNr);
+  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CADW0720_SLOTSTATUS + slotNr);
   _SLOTstatus[slotNr] = (uint8_t)tmpStatus;
   return (_SLOTstatus[slotNr]);
 } //  getSlotStatus()
 
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getSlotModes()
+uint8_t I2CADW0720::getSlotModes()
 {
-  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CEXTPL_SLOT_MODES);
+  uint8_t tmpStatus = (uint8_t)readReg1Byte(I2CADW0720_SLOT_MODES);
   _SLOTmodes = (uint8_t)tmpStatus;
   return (_SLOTmodes);
 } // getSlotModes()
 
 //-------------------------------------------------------------------------------------
-int8_t I2CEXTPL::getWhoAmI()
+int8_t I2CADW0720::getWhoAmI()
 {
-  return (readReg1Byte(I2CEXTPL_ADDRESS));
+  return (readReg1Byte(I2CADW0720_ADDRESS));
 } //  getWhoAmI()
 
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getDebounceTime()
+uint8_t I2CADW0720::getDebounceTime()
 {
-  return (readReg1Byte(I2CEXTPL_DEBOUNCETIME));
+  return (readReg1Byte(I2CADW0720_DEBOUNCETIME));
 } //  getDebounceTime()
 
 //-------------------------------------------------------------------------------------
-uint16_t I2CEXTPL::getMidPressTime()
+uint16_t I2CADW0720::getMidPressTime()
 {
-  return (readReg2Byte(I2CEXTPL_MIDPRESSTIME));
+  return (readReg2Byte(I2CADW0720_MIDPRESSTIME));
 } //  getMidPressTime()
 
 //-------------------------------------------------------------------------------------
-uint16_t I2CEXTPL::getLongPressTime()
+uint16_t I2CADW0720::getLongPressTime()
 {
-  return (readReg2Byte(I2CEXTPL_LONGPRESSTIME));
+  return (readReg2Byte(I2CADW0720_LONGPRESSTIME));
 } //  getLongPressTime()
 
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getModeSettings()
+uint8_t I2CADW0720::getModeSettings()
 {
-  return (readReg1Byte(I2CEXTPL_MODESETTINGS));
+  return (readReg1Byte(I2CADW0720_MODESETTINGS));
 } //  getModeSettings()
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::getModeSettings(uint8_t testBit)
+bool I2CADW0720::getModeSettings(uint8_t testBit)
 {
-  return ( readReg1Byte(I2CEXTPL_MODESETTINGS) & (1<<testBit) );
+  return ( readReg1Byte(I2CADW0720_MODESETTINGS) & (1<<testBit) );
 } //  getModeSettings()
 
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getMajorRelease()
+uint8_t I2CADW0720::getMajorRelease()
 {
-  return (readReg1Byte(I2CEXTPL_MAJORRELEASE));
+  return (readReg1Byte(I2CADW0720_MAJORRELEASE));
 } //  getMajorRelease()
 
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::getMinorRelease()
+uint8_t I2CADW0720::getMinorRelease()
 {
-  return (readReg1Byte(I2CEXTPL_MINORRELEASE));
+  return (readReg1Byte(I2CADW0720_MINORRELEASE));
 } //  getMinorRelease()
 
 
@@ -207,7 +207,7 @@ uint8_t I2CEXTPL::getMinorRelease()
 
 // Reads a uint8_t from a register @addr
 //-------------------------------------------------------------------------------------
-uint8_t I2CEXTPL::readReg1Byte(uint8_t addr)
+uint8_t I2CADW0720::readReg1Byte(uint8_t addr)
 {  
   while ((millis() - _readTimer) < _READDELAY) 
   {
@@ -234,7 +234,7 @@ uint8_t I2CEXTPL::readReg1Byte(uint8_t addr)
 
 // Reads an int16_t from a register @addr
 //-------------------------------------------------------------------------------------
-int16_t I2CEXTPL::readReg2Byte(uint8_t addr)
+int16_t I2CADW0720::readReg2Byte(uint8_t addr)
 {
   while ((millis() - _readTimer) < _READDELAY) 
   {
@@ -263,7 +263,7 @@ int16_t I2CEXTPL::readReg2Byte(uint8_t addr)
 
 // Reads an int32_t from a register @addr
 //-------------------------------------------------------------------------------------
-int32_t I2CEXTPL::readReg4Byte(uint8_t addr)
+int32_t I2CADW0720::readReg4Byte(uint8_t addr)
 {
   while ((millis() - _readTimer) < _READDELAY) 
   {
@@ -301,7 +301,7 @@ int32_t I2CEXTPL::readReg4Byte(uint8_t addr)
 
 // Write a 1 byte value to a register
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::writeReg1Byte(uint8_t addr, uint8_t val)
+bool I2CADW0720::writeReg1Byte(uint8_t addr, uint8_t val)
 {
   while ((millis() - _readTimer) < _WRITEDELAY) 
   {
@@ -324,7 +324,7 @@ bool I2CEXTPL::writeReg1Byte(uint8_t addr, uint8_t val)
 
 // Write a 2 byte value to a register
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::writeReg2Byte(uint8_t addr, int16_t val)
+bool I2CADW0720::writeReg2Byte(uint8_t addr, int16_t val)
 {
   while ((millis() - _readTimer) < _WRITEDELAY) 
   {
@@ -349,7 +349,7 @@ bool I2CEXTPL::writeReg2Byte(uint8_t addr, int16_t val)
 
 // Write a 3 byte value to a register
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::writeReg3Byte(uint8_t addr, int32_t val)
+bool I2CADW0720::writeReg3Byte(uint8_t addr, int32_t val)
 {
   while ((millis() - _readTimer) < _WRITEDELAY) 
   {
@@ -375,7 +375,7 @@ bool I2CEXTPL::writeReg3Byte(uint8_t addr, int32_t val)
 
 // Write a 4 byte value to a register
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::writeReg4Byte(uint8_t addr, int32_t val)
+bool I2CADW0720::writeReg4Byte(uint8_t addr, int32_t val)
 {
   while ((millis() - _readTimer) < _WRITEDELAY) 
   {
@@ -404,7 +404,7 @@ bool I2CEXTPL::writeReg4Byte(uint8_t addr, int32_t val)
 //-------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::isConnected()
+bool I2CADW0720::isConnected()
 {
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   if (_I2Cbus->endTransmission() != 0)
@@ -413,7 +413,7 @@ bool I2CEXTPL::isConnected()
 } // isConnected()
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::isSlotPressed(uint8_t slotNr) 
+bool I2CADW0720::isSlotPressed(uint8_t slotNr) 
 {
   if (_SLOTstatus[slotNr] & (1 << SLT_PRESSED_BIT)) {
     _SLOTstatus[slotNr] &= ~(1 << SLT_PRESSED_BIT);
@@ -423,7 +423,7 @@ bool I2CEXTPL::isSlotPressed(uint8_t slotNr)
 }
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::isSlotQuickReleased(uint8_t slotNr)
+bool I2CADW0720::isSlotQuickReleased(uint8_t slotNr)
 {
   if (_SLOTstatus[slotNr] & (1 << SLT_QUICKRELEASE_BIT)) {
     _SLOTstatus[slotNr] &= ~(1 << SLT_QUICKRELEASE_BIT);
@@ -433,7 +433,7 @@ bool I2CEXTPL::isSlotQuickReleased(uint8_t slotNr)
 }
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::isSlotMidReleased(uint8_t slotNr)
+bool I2CADW0720::isSlotMidReleased(uint8_t slotNr)
 {
   if (_SLOTstatus[slotNr] & (1 << SLT_MIDRELEASE_BIT)) {
     _SLOTstatus[slotNr] &= ~(1 << SLT_MIDRELEASE_BIT);
@@ -443,7 +443,7 @@ bool I2CEXTPL::isSlotMidReleased(uint8_t slotNr)
 }
 
 //-------------------------------------------------------------------------------------
-bool I2CEXTPL::isSlotLongReleased(uint8_t slotNr)
+bool I2CADW0720::isSlotLongReleased(uint8_t slotNr)
 {
   if (_SLOTstatus[slotNr] & (1 << SLT_LONGRELEASE_BIT)) {
     _SLOTstatus[slotNr] &= ~(1 << SLT_LONGRELEASE_BIT);
@@ -454,7 +454,7 @@ bool I2CEXTPL::isSlotLongReleased(uint8_t slotNr)
 
 //===========================================================================================
 //assumes little endian
-void I2CEXTPL::printRegister(HardwareSerial *serOut, size_t const size, void const * const ptr)
+void I2CADW0720::printRegister(HardwareSerial *serOut, size_t const size, void const * const ptr)
 {
   //assumes little endian
   unsigned char *b = (unsigned char*) ptr;
