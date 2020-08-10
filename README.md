@@ -10,10 +10,10 @@ This library gives an interface between your own program and the I2C_ExtPlus boa
 To use it you have to include this library in your sketch
 
 ```
-#include <I2C_ExtPlus.h>
+#include <I2C_ADW0720.h>
 ```
 
-Declare an Extender object (declare one for every I2C_ExtPlus board):
+Declare an Extender object (declare one for every I2C_ADW0720 board):
 
 ```
 I2CEXTPL ExtenderBoard; // Create instance of the I2CEXTPL object
