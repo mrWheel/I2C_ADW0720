@@ -1,5 +1,5 @@
 /*
-**    Program : I2C_ExtPlus_Tiny841_Slave
+**    Program : I2C_ADW0720_Tiny841_Slave
 **    Date    : 31-07-2020
 */
 #define _MAJOR_VERSION  1
