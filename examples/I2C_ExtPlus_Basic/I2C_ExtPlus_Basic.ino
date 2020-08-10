@@ -5,7 +5,7 @@
 */
 #define _FW_VERSION  "v1.3 (31-07-2020)"
 /*
-**  Description : Demo "howto" use I2C_ExtPlus board
+**  Description : Demo "howto" use I2C_ADW0720 board
 **
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -38,7 +38,7 @@
 #include <I2C_ADW0720.h>
 
 
-I2CEXTPL ExtPlusBrd1; // Create instance of the I2CEXTPL object
+I2CADW0720    ExtPlusBrd1; // Create instance of the I2CADW0720 object
 
 byte          whoAmI;
 byte          majorRelease, minorRelease;
