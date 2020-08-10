@@ -1,7 +1,7 @@
 /*
 ***************************************************************************  
 **
-**  Program     : I2C_ADW0720s_Configurator
+**  Program     : I2C_ADW0720_Configurator
 */
 #define _FW_VERSION  "v1.2 (28-07-2020)"
 /*
