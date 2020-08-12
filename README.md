@@ -67,7 +67,7 @@ The library gives you the following setters:
 |:-------------------|:-------:|:---------|:------------------------|
 | setModeOutput(Slot)    | bool    | uint8_t  | set (slot) as OUTPUT pin|
 | setModeInput(Slot)     | bool    | uint8_t  | set (slot) as INPUT-PULLUP pin|
-| setOutputToggle(Slot,{HIGH|LOW},1000)  | bool    | uint8_t, bool, uint16_t  | Toggel (slot, on/off, duration (ms))|
+| setOutputToggle(Slot,{HIGH\|LOW},1000)  | bool    | uint8_t, bool, uint16_t  | Toggel (slot, on/off, duration (ms))|
 | setOutputPulse(Slot,500,750,10000)   | bool    | uint8_t, uint16_t, uint16_t, uint16_t  | set pulse (slot, on (ms), off (ms), duration (ms))|
 | setDebounceTime(100)  | bool    | uint8_t  | set the Debounce Time of the switch (5 .. 250 micro seconds)|
 | setMidPressTime(1000)  | bool    | uint16_t | set the Mid Press Time of the switch (100 .. 5000 milli seconds)|
