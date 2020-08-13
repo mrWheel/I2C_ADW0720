@@ -1,9 +1,9 @@
 /*
 **    Program : I2C_ADW0720_Tiny841_Slave
-**    Date    : 31-07-2020
+**    Date    : 13-08-2020
 */
 #define _MAJOR_VERSION  1
-#define _MINOR_VERSION  3
+#define _MINOR_VERSION  4
 /*
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -44,10 +44,10 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#define SETBIT(regByte, bit)     (regByte) |=  (1 << (bit))
-#define CLEARBIT(regByte, bit)   (regByte) &= ~(1 << (bit))
+#define SETBIT(regByte, bit)       (regByte) |=  (1 << (bit))
+#define CLEARBIT(regByte, bit)     (regByte) &= ~(1 << (bit))
 #define BIT_IS_HIGH(regByte, bit)  ((regByte) & (1<<(bit)))
-#define BIT_IS_LOW(regByte, bit)   (!((regByte) & (1<<(bit))))
+#define BIT_IS_LOW(regByte, bit)   (!(BIT_IS_HIGH(regByte, bit)))
 
 #define _I2C_DEFAULT_ADDRESS  0x18
 
@@ -117,7 +117,7 @@ volatile registerLayout registerStack = {
   .minorRelease =     _MINOR_VERSION,     // 0x02
   .sysStatus =                     0,     // 0x03
   .slotStatus =    {0,0,0,0,0,0,0,0},     // 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
-  .slotModes =                  0x00,     // 0x0C
+  .slotModes =                  0xFF,     // 0x0C   -> default is INPUT
   .debounceTime =                  5,     // 0x0D
   .midPressTime =                500,     // 0x0E 2 --> 0x0E 0x0F
   .longPressTime =              1500,     // 0x10 2 --> 0x10 0x11

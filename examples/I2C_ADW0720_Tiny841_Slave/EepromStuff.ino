@@ -1,5 +1,5 @@
 /*
-**    Program : EepromStuff (part of I2C_ADW0720_Tiny841_Slave)
+**    Program : EepromStuff (part of I2C_ExtPlus_Tiny841_Slave)
 **
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -26,6 +26,7 @@ static void readConfig()
     registerStack.address       = _I2C_DEFAULT_ADDRESS;
     registerStack.majorRelease  = _MAJOR_VERSION;
     registerStack.minorRelease  = _MINOR_VERSION;
+    registerStack.slotModes     =  0xFF;
     registerStack.debounceTime  =    10;
     registerStack.midPressTime  =   500;
     registerStack.longPressTime =  1500;

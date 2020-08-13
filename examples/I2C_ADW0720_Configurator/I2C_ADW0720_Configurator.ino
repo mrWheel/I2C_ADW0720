@@ -3,7 +3,7 @@
 **
 **  Program     : I2C_ADW0720_Configurator
 */
-#define _FW_VERSION  "v1.2 (28-07-2020)"
+#define _FW_VERSION  "v1.2 (13-08-2020)"
 /*
 **  Description : With this program you can configure 
 **                I2C extender boards
@@ -19,19 +19,19 @@
 //#define _SDA                  4
 //#define _SCL                  5
 
-#define SETBIT(regByte, bit)     (regByte) |=  (1 << (bit))
-#define CLEARBIT(regByte, bit)   (regByte) &= ~(1 << (bit))
+#define SETBIT(regByte, bit)       (regByte) |=  (1 << (bit))
+#define CLEARBIT(regByte, bit)     (regByte) &= ~(1 << (bit))
 #define BIT_IS_HIGH(regByte, bit)  ((regByte) & (1<<(bit)))
-#define BIT_IS_LOW(regByte, bit)   (!((regByte) & (1<<(bit))))
+#define BIT_IS_LOW(regByte, bit)   (!(BIT_IS_HIGH(regByte, bit)))
 
-#define LED1                  0
-#define LED2                  1
-#define LED3                  2
-#define LED4                  3
-#define BUTTON1               4
-#define BUTTON2               5
-#define BUTTON3               6
-#define BUTTON4               7
+#define SLOT0                   0
+#define SLOT1                   1
+#define SLOT2                   2
+#define SLOT3                   3
+#define SLOT4                   4
+#define SLOT5                   5
+#define SLOT6                   6
+#define SLOT7                   7
 
 #include <I2C_ADW0720.h>
 
@@ -46,8 +46,28 @@ uint8_t       sysStatus, slotStatus, slotModes;
 uint32_t      builtinLedTimer;
 
 bool          inConfigureMode   = false;
-bool          doAnimate         = false;
 
+
+//===========================================================================================
+byte walkingOutput()
+{
+  byte slotModes = ExtenderBoard.getSlotModes();
+  
+  Serial.print("[");
+  for(uint8_t slt=0; slt<8; slt++)
+  { 
+    if (BIT_IS_LOW(slotModes, slt) )
+    {
+      Serial.print("0");
+      ExtenderBoard.setOutputPulse(slt, 500,2000,20000);
+      delay(100);
+    }
+    else Serial.print(" ");
+    Serial.flush();
+  }
+  Serial.println("]");
+
+} // walkingOutput()
 
 //===========================================================================================
 byte findSlaveAddress(byte startAddress)

@@ -70,9 +70,19 @@ void handleKeyInput()
       case '6':
       case '7':
             slotNr = (int)(inChar) - 48;
+            Serial.print("set Slot["); Serial.print(slotNr); Serial.print("]");
             val = readNumber("set Slot as (0=Output, 1=Input)", 0, 1);
-            if (val == 0) ExtenderBoard.setModeOutput(slotNr);
+            if (val == 0) 
+            {
+              ExtenderBoard.setModeOutput(slotNr);
+              ExtenderBoard.setOutputPulse(slotNr, 100,200,5000);
+            }
             if (val == 1) ExtenderBoard.setModeInput(slotNr);
+            break;
+
+      case 'w':
+      case 'W':
+            walkingOutput();
             break;
                         
       case 'A':
@@ -88,29 +98,25 @@ void handleKeyInput()
             Serial.println(F("]"));
             Serial.println(F("--> Save registers to EEPROM (S)"));
             break;
-      case '-':
-            doAnimate = false;
-            break;
 
-      case '+':
-            doAnimate = true;
-            break;
-      case 'j':
-      case 'J':
+      case 'd':
+      case 'D':
             val = readNumber("Debounce time in micro seconds", 1, 255);
             if (!ExtenderBoard.setDebounceTime(val & 0xFF)) 
             {
               Serial.println(F("Error setting DebounceTime.."));
             }
             break;
-      case 'k':
-      case 'K':
+            
+      case 'm':
+      case 'M':
             val = readNumber("Mid Press Time (milli sec.)", 100, 5000);
             if (!ExtenderBoard.setMidPressTime(val)) 
             {
               Serial.println(F("Error setting Mid Press Time .."));
             }
             break;
+            
       case 'l':
       case 'L':
             val = readNumber("Long Press Time (milli sec.)", 300, 10000);
@@ -141,6 +147,7 @@ void handleKeyInput()
               Serial.println(F("Slave is not reBooting ??"));
             }
             break;
+            
       case 'r':
       case 'R':
             if (ExtenderBoard.writeCommand(_BV(CMD_READCONF))) 
@@ -164,6 +171,7 @@ void handleKeyInput()
               Serial.println(F("Slave is not reBooting ??"));
             }
             break;
+            
       case 'z':
       case 'Z':
             Serial.println(F("Z (exit config mode)"));
@@ -180,9 +188,11 @@ void handleKeyInput()
             Serial.print(F("."));
             Serial.print(minorRelease);
             Serial.println(F("]============================"));
-            Serial.print(F(" 0-9 set Slot (0=Output, 1=Input) ["));
+            Serial.println(F("                            Slot# [76543210]"));
+            Serial.print(F(" 0-7 set Slot (0=Output, 1=Input) "));
             ExtenderBoard.printRegister(&Serial, 1, &slotModes);
-            Serial.println("]");
+            Serial.println("");
+            Serial.println(F(" W.  Walk the output Slot's\r\n"));
             Serial.print(F("*A.  Change I2C address .............. (is now [0x"));
             Serial.print(I2C_Address, HEX);
             Serial.print(F(", dec"));
@@ -196,10 +206,10 @@ void handleKeyInput()
               Serial.println(F("]"));
             } 
             else  Serial.println();
-            Serial.print(F(" J.  Set debounceTime in microSeconds  (is now ["));
+            Serial.print(F(" D.  Set debounceTime in microSeconds  (is now ["));
             Serial.print(ExtenderBoard.getDebounceTime());
             Serial.println(F("])"));
-            Serial.print(F(" K.  Set Mid Press Time in milliSec.   (is now ["));
+            Serial.print(F(" M.  Set Mid Press Time in milliSec.   (is now ["));
             Serial.print(ExtenderBoard.getMidPressTime());
             Serial.println(F("])"));
             Serial.print(F(" L.  Set Long Press Time in milliSec.  (is now ["));
