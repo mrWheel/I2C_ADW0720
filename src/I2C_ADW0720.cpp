@@ -90,13 +90,21 @@ bool I2CADW0720::setOutputToggle(uint8_t slotNr, bool isHigh, uint16_t duration)
 //-------------------------------------------------------------------------------------
 bool I2CADW0720::setOutputPulse(uint8_t slotNr, uint16_t hTime, uint16_t lTime, uint16_t duration)
 {
+  int wOK;
   byte slotFunc = 0;
   slotFunc |= (1<<SLT_PULSE_BIT);               // bit 2 is type = Blink
-  writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
-  writeReg2Byte(I2CADW0720_SLOT_LOWTIME, hTime);
-  writeReg2Byte(I2CADW0720_SLOT_HIGHTIME, lTime);
-  writeReg2Byte(I2CADW0720_SLOT_DURATION, duration);
-  return(writeReg1Byte(I2CADW0720_SLOT_NR, slotNr));
+  //--- somethings strange .. missing transmissions so we
+  //--- send this 2 times and then it works most of the time
+  for(uint8_t t=0; t<2; t++)
+  {
+    writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
+    writeReg2Byte(I2CADW0720_SLOT_LOWTIME, hTime);
+    writeReg2Byte(I2CADW0720_SLOT_HIGHTIME, lTime);
+    writeReg2Byte(I2CADW0720_SLOT_DURATION, duration);
+    wOK = writeReg1Byte(I2CADW0720_SLOT_NR, slotNr);
+  }
+  
+  return(wOK);
 
 } //  setOutputPulse()
 
@@ -303,21 +311,26 @@ int32_t I2CADW0720::readReg4Byte(uint8_t addr)
 //-------------------------------------------------------------------------------------
 bool I2CADW0720::writeReg1Byte(uint8_t addr, uint8_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) 
+  bool wOK;
+  
+  while ((millis() - _writeTimer) < _WRITEDELAY) 
   {
     delay(1);
   }
-  _readTimer = millis();
+  _writeTimer = millis();
 
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
-  _I2Cbus->write(addr);
-  _I2Cbus->write(val);
+  wOK = _I2Cbus->write(addr);
+  if (!wOK) return(false);
+  wOK = _I2Cbus->write(val);
+  if (!wOK) return(false);
   if (_I2Cbus->endTransmission() == 0) 
   {
+    _writeTimer = millis();
     return (true); 
   }
   // Slave did not ack
-  _readTimer = millis();
+  _writeTimer = millis();
   return (false);
 
 } // writeReg1Byte()
@@ -326,11 +339,11 @@ bool I2CADW0720::writeReg1Byte(uint8_t addr, uint8_t val)
 //-------------------------------------------------------------------------------------
 bool I2CADW0720::writeReg2Byte(uint8_t addr, int16_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) 
+  while ((millis() - _writeTimer) < (_WRITEDELAY * 2)) 
   {
     delay(1);
   }
-  _readTimer = millis();
+  _writeTimer = millis();
 
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   _I2Cbus->write(addr);
@@ -338,10 +351,11 @@ bool I2CADW0720::writeReg2Byte(uint8_t addr, int16_t val)
   _I2Cbus->write(val >> 8);   // MSB
   if (_I2Cbus->endTransmission() == 0) 
   {
+    _writeTimer = millis();
     return (true); 
   }
   // Slave did not ack
-  _readTimer = millis();
+  _writeTimer = millis();
   return (false);
 
 } // writeReg2Bytes()
@@ -351,11 +365,11 @@ bool I2CADW0720::writeReg2Byte(uint8_t addr, int16_t val)
 //-------------------------------------------------------------------------------------
 bool I2CADW0720::writeReg3Byte(uint8_t addr, int32_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) 
+  while ((millis() - _writeTimer) < (_WRITEDELAY * 3)) 
   {
     delay(1);
   }
-  _readTimer = millis();
+  _writeTimer = millis();
 
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   _I2Cbus->write(addr);
@@ -365,10 +379,11 @@ bool I2CADW0720::writeReg3Byte(uint8_t addr, int32_t val)
   //_I2Cbus->write(val >> 24);    // MSB
   if (_I2Cbus->endTransmission() == 0) 
   {
+    _writeTimer = millis();
     return (true); 
   }
   // Slave did not ack
-  _readTimer = millis();
+  _writeTimer = millis();
   return (false);
 
 } // writeReg3Byte()
@@ -377,11 +392,11 @@ bool I2CADW0720::writeReg3Byte(uint8_t addr, int32_t val)
 //-------------------------------------------------------------------------------------
 bool I2CADW0720::writeReg4Byte(uint8_t addr, int32_t val)
 {
-  while ((millis() - _readTimer) < _WRITEDELAY) 
+  while ((millis() - _writeTimer) < (_WRITEDELAY * 4)) 
   {
     delay(1);
   }
-  _readTimer = millis();
+  _writeTimer = millis();
 
   _I2Cbus->beginTransmission((uint8_t)_I2Caddress);
   _I2Cbus->write(addr);
@@ -391,10 +406,11 @@ bool I2CADW0720::writeReg4Byte(uint8_t addr, int32_t val)
   _I2Cbus->write(val >> 24);  // MSB
   if (_I2Cbus->endTransmission() == 0) 
   {
+    _writeTimer = millis();
     return (true); 
   }
   // Slave did not ack
-  _readTimer = millis();
+  _writeTimer = millis();
   return (false);
   
 } // writeReg4Bytes()

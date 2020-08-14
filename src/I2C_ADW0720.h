@@ -17,8 +17,8 @@
 #include "Wire.h"
 
 #define I2C_SLAVE_ADDRESS 0x18
-#define _WRITEDELAY 50   // 10
-#define _READDELAY  20   // 5
+#define _WRITEDELAY 15   // 10
+#define _READDELAY  10   // 5
 
 // status bits
 enum  {  SLT_PRESSED_BIT, SLT_QUICKRELEASE_BIT, SLT_MIDRELEASE_BIT, SLT_LONGRELEASE_BIT
@@ -109,6 +109,7 @@ private:
   TwoWire             *_I2Cbus;
   uint8_t             _I2Caddress;
   uint32_t            _readTimer;
+  uint32_t            _writeTimer;
   volatile uint8_t   _SYSstatus;
   volatile uint8_t   _SLOTmodes;
   volatile uint8_t   _SLOTstatus[8];
