@@ -78,7 +78,6 @@ void processCommand(byte command)
 //-- All Setters end up here ---------------------------------------
 void receiveEvent(int numberOfBytesReceived)
 {
-  aliveTimer = millis();
   registerNumber = Wire.read(); //-- Get the memory map offset from the user
 
   if (registerNumber == _CMD_REGISTER)  //-- command
@@ -148,13 +147,11 @@ void receiveEvent(int numberOfBytesReceived)
 } //  receiveEvent()
 
 //------------------------------------------------------------------
-//-- The master aks's for the data from registerNumber onwards -----
+//-- The master ask's for the data from registerNumber onwards -----
 //-- in the register(s) --------------------------------------------
 //-- All getters get there data from here --------------------------
 void requestEvent()
 {
-  aliveTimer = millis();
-
   //----- write max. 4 bytes starting at registerNumber -------
   for (uint8_t x = 0; ( (x < 4) &&(x + registerNumber) < (sizeof(registerLayout) - 1) ); x++) {
     Wire.write(registerPointer[(x + registerNumber)]);
@@ -173,10 +170,11 @@ void requestEvent()
   //-- [7][6][5][4][3][2][1][0]  <--- slotStatus[x] register bits
   //--              ^  ^  ^  ^ 
   //--              |  |  |  +--------------> 1 if Button pressed
-  //--              |  |  +-----------------> 1 if Buttob Quick Released
-  //--              |  +--------------------> 1 if Buttob Mid Released
-  //--              +-----------------------> 1 if Buttob Long Released
+  //--              |  |  +-----------------> 1 if Button Quick Released
+  //--              |  +--------------------> 1 if Button Mid Released
+  //--              +-----------------------> 1 if Button Long Released
   //--
+  //-- registerNumber == 0x04 => slotStatus[0]
   //-- registerNumber == 0x0B => slotStatus[7]
   if ( (registerNumber >= 0x04) && (registerNumber <= 0x0B) )
   {

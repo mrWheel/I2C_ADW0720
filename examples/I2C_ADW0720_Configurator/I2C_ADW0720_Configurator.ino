@@ -52,20 +52,15 @@ bool          inConfigureMode   = false;
 byte walkingOutput()
 {
   byte slotModes = ExtenderBoard.getSlotModes();
-  
-  Serial.print("[");
+
+  Serial.println("Walk the lights ...");
   for(uint8_t slt=0; slt<8; slt++)
   { 
     if (BIT_IS_LOW(slotModes, slt) )
     {
-      Serial.print("0");
       ExtenderBoard.setOutputPulse(slt, 500,2000,20000);
-      delay(100);
     }
-    else Serial.print(" ");
-    Serial.flush();
   }
-  Serial.println("]");
 
 } // walkingOutput()
 

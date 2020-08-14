@@ -92,7 +92,6 @@ void handleInput(uint8_t slotNr)
     break;
 
   case BTN_IS_RELEASED:
-    //aliveTimer = millis();
     if ((millis() - slot[slotNr].durationTimer) > registerStack.longPressTime) 
     {
       if (BIT_IS_LOW(registerStack.slotStatus[slotNr], SLT_LONGRELEASE_BIT) )  // not already set?

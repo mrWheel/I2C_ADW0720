@@ -180,14 +180,13 @@ void handleKeyInput()
 
       default:
             slotModes = ExtenderBoard.getSlotModes();
-            Serial.println(F("\n===================================="));
-            Serial.println(F(  "=========== Main menu =============="));
-            Serial.println(F(  "===================================="));
-            Serial.print(F("\n==== Firmware version I2C_ExtPlus ========[v"));
+            Serial.println(F("\n==============================================================="));
+            Serial.print(F(  "=========== Main menu I2C_ADW0720 Configurator =========[v"));
             Serial.print(majorRelease);
             Serial.print(F("."));
             Serial.print(minorRelease);
-            Serial.println(F("]============================"));
+            Serial.println(F("]="));
+            Serial.println(F("==============================================================="));
             Serial.println(F("                            Slot# [76543210]"));
             Serial.print(F(" 0-7 set Slot (0=Output, 1=Input) "));
             ExtenderBoard.printRegister(&Serial, 1, &slotModes);

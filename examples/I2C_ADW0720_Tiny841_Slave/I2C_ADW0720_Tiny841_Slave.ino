@@ -1,6 +1,6 @@
 /*
 **    Program : I2C_ADW0720_Tiny841_Slave
-**    Date    : 13-08-2020
+**    Date    : 14-08-2020
 */
 #define _MAJOR_VERSION  1
 #define _MINOR_VERSION  4
@@ -137,7 +137,6 @@ volatile byte registerNumber;
 
 static uint8_t    prevNextCode = 0;
 static uint16_t   store=0;
-uint32_t          interTimer, aliveTimer;
 
 struct slotFields {
   byte      state;
@@ -327,7 +326,7 @@ void slotWrite(uint8_t slotNr, bool newState)
 void reBoot()
 {
   Wire.end();
-
+/***
   //-- Pulse Output Slots (On) -
   for (int b=0; b<10; b++) 
   {
@@ -347,7 +346,7 @@ void reBoot()
       delay(100);
     }
   }
-
+***/
   //-- restart slave
   setup();
 
@@ -452,45 +451,19 @@ void updateSlotModes()
 void setup()
 {
 #if defined (__AVR_ATmega328P__)
-  Serial.begin(230400);
+  Serial.begin(115200);
   while(!Serial) {/* wait a bit */}
-  Debugln("\n\rI2C_Lase_Tiny841_Slave startup ..\r\n");
+  Debugln("\n\rI2C_ADW0720_Tiny841_Slave startup ..\r\n");
 #endif
 
   
   readConfig();
 
   updateSlotModes();
-
-  //---------------------------------------------------------------
-  //-------------- now set Pulse Output -----------------------------
-  //---------------------------------------------------------------
-  //-- Pulse Output Slots (On) -
-  for (int b=0; b<3; b++) 
-  {
-    for (uint8_t s=0; s<8; s++)
-    {
-      // only handle output slots
-      if ( BIT_IS_HIGH(registerStack.slotModes, s) ) continue;
-      slotWrite(s, HIGH);
-      Debug("H");
-      delay(5);
-    }
-    delay(100);
-    for (uint8_t s=0; s<8; s++)
-    {
-      // only handle output slots
-      if ( BIT_IS_HIGH(registerStack.slotModes, s) ) continue;
-      slotWrite(s, LOW);
-      Debug("L");
-      delay(5);
-    }
-    delay(100);
-  }
-  Debugln();
   
   startI2C();
-  
+
+  /***
   for (int8_t s=0; s<8; s++)
   {
     if (BIT_IS_LOW(registerStack.slotModes, s))
@@ -499,7 +472,7 @@ void setup()
       delay(50);
     }
   }
-  
+  ***/
   registerStack.sysStatus = 0;
   for(uint8_t r=0; r<7; r++)  registerStack.slotStatus[r] = 0;
   
