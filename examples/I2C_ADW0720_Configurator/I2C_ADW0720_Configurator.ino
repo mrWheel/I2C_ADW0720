@@ -3,7 +3,7 @@
 **
 **  Program     : I2C_ADW0720_Configurator
 */
-#define _FW_VERSION  "v1.2 (13-08-2020)"
+#define _FW_VERSION  "v1.4 (16-08-2020)"
 /*
 **  Description : With this program you can configure 
 **                I2C extender boards
@@ -49,20 +49,36 @@ bool          inConfigureMode   = false;
 
 
 //===========================================================================================
-byte walkingOutput()
+byte walkTheSlots(bool dirUp)
 {
   byte slotModes = ExtenderBoard.getSlotModes();
 
   Serial.println("Walk the lights ...");
-  for(uint8_t slt=0; slt<8; slt++)
-  { 
-    if (BIT_IS_LOW(slotModes, slt) )
-    {
-      ExtenderBoard.setOutputPulse(slt, 500,2000,20000);
+  if (dirUp)
+  {
+    for(int8_t slt=0; slt<8; slt++)
+    { 
+      if (BIT_IS_LOW(slotModes, slt) )
+      {
+        ExtenderBoard.setOutputPulse(slt, 500,2000,10000);
+      }
     }
+    return;
+  }
+  if (!dirUp)
+  {
+    for(int8_t slt=7; slt>=0; slt--)
+    { 
+      if (BIT_IS_LOW(slotModes, slt) )
+      {
+        ExtenderBoard.setOutputPulse(slt, 200,1000,10000);
+      }
+    }
+    return;
   }
 
-} // walkingOutput()
+} // walkTheSlots()
+
 
 //===========================================================================================
 byte findSlaveAddress(byte startAddress)
@@ -89,6 +105,7 @@ byte findSlaveAddress(byte startAddress)
       if (address < 0x0F) Serial.print("0");
       Serial.print(address , HEX);
       Serial.print(F("] (y/N) : "));
+      Serial.println();
       String answerS = "";
       char answerC = '-';
       bool stayInWhile = true;
@@ -131,9 +148,6 @@ void handleInputSlots(uint8_t slotNr)
   slotStatus = ExtenderBoard.getSlotStatus(slotNr);
   if (slotStatus == 0) return;
   
-  digitalWrite(LED_BUILTIN, LOW);
-  builtinLedTimer = millis();
-
   Serial.print(F("sysStatus: "));
   ExtenderBoard.printRegister(&Serial, 1, &sysStatus);
   sysStatus = ExtenderBoard.getSysStatus();
@@ -161,6 +175,7 @@ void handleInputSlots(uint8_t slotNr)
 
 
 //===========================================================================================
+//===========================================================================================
 void setup()
 {
   Serial.begin(115200);
@@ -171,9 +186,6 @@ void setup()
   delay(1000);
 //Wire.setClock(400000L);
   Serial.println(F(".. done"));
-
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
 
   Serial.println(F("setup() done .. \n"));
 
@@ -235,12 +247,6 @@ void loop()
     {
       //animateLeds();
     }
-  }
-
-  if ((millis() - builtinLedTimer) > 2000) 
-  {
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    builtinLedTimer = millis();
   }
 
 } // loop()

@@ -2,7 +2,7 @@
 ***************************************************************************  
 **
 **  File    : I2C_ADW0720.h
-**  Version : v1.2  - 28-07-2020
+**  Version : v1.4  - 16-08-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -21,8 +21,15 @@
 #define _READDELAY  10   // 5
 
 // status bits
-enum  {  SLT_PRESSED_BIT, SLT_QUICKRELEASE_BIT, SLT_MIDRELEASE_BIT, SLT_LONGRELEASE_BIT
-       , SLT_HIGH_BIT, SLT_TOGGLE_BIT, SLT_PULSE_BIT };
+enum  {  SLT_PRESSED_BIT        // bit 0
+       , SLT_QUICKRELEASE_BIT   // bit 1
+       , SLT_MIDRELEASE_BIT     // bit 2
+       , SLT_LONGRELEASE_BIT    // bit 3
+       , SLT_TOGGLE_BIT         // bit 4
+       , SLT_PULSE_BIT          // bit 5
+       , SLT_PWM_BIT            // bit 6
+       , SLT_HIGH_BIT           // bit 7
+      };
 enum  {  CMD_READCONF, CMD_WRITECONF, CMD_DUM2, CMD_DUM3, CMD_DUM4
        , CMD_DUM5, CMD_DUM6,  CMD_REBOOT };
 
@@ -47,10 +54,11 @@ enum boardRegisters {
   I2CADW0720_LONGPRESSTIME  = 0x10,  // 2 bytes 0x10 0x11
   I2CADW0720_SLOT_NR        = 0x12,
   I2CADW0720_SLOT_FUNC      = 0x13,
-  I2CADW0720_SLOT_LOWTIME   = 0x14, // 2 bytes 0x14 0x15
-  I2CADW0720_SLOT_HIGHTIME  = 0x16, // 2 bytes 0x16 0x17
-  I2CADW0720_SLOT_DURATION  = 0x18, // 2 bytes 0x18 0x19
-  I2CADW0720_MODESETTINGS   = 0x1A,
+  I2CADW0720_SLOT_PWMVALUE  = 0x14,
+  I2CADW0720_SLOT_HIGHTIME  = 0x15, // 2 bytes 0x15 0x16
+  I2CADW0720_SLOT_LOWTIME   = 0x17, // 2 bytes 0x17 0x18
+  I2CADW0720_SLOT_DURATION  = 0x19, // 2 bytes 0x19 0x1A
+  I2CADW0720_MODESETTINGS   = 0x1B,
   //----
   I2CADW0720_COMMAND        = 0xF0   // -> this is NOT a "real" register!!
 };
@@ -68,7 +76,7 @@ public:
 //-------------------------- GETTERS --------------------------------------------------
 //-------------------------------------------------------------------------------------
   uint8_t   getSysStatus();               // reads the status byte
-  uint8_t   getSlotStatus(uint8_t);       // reads the slot4 status byte
+  uint8_t   getSlotStatus(uint8_t);       // reads the slot status byte
   uint8_t   getSlotModes();
   int8_t    getWhoAmI();                  // read the Address Register
   uint8_t   getDebounceTime();            // read the Debounce Time of the switch (5 .. 250 micro seconds)
@@ -84,10 +92,12 @@ public:
 //-------------------------------------------------------------------------------------
   bool      setModeOutput(uint8_t);       // set slot as OUTPUT
   bool      setModeInput(uint8_t);        // set slot as INPUT
-  // set <led> HIGH/LOW> <Duration>
+  //--                  set <slot> <HIGH/LOW> <Duration>
   bool      setOutputToggle(uint8_t, bool, uint16_t);
-  // set blink <led>, <HIGH time>, <LOW time>, <Duration>  
+  //--           set blink <slot>, <HIGH time>, <LOW time>, <Duration>  
   bool      setOutputPulse(uint8_t, uint16_t, uint16_t, uint16_t);         
+  //--           set pwm <slot>, <pwmVal>, <Duration>  
+  bool      setOutputPWM(uint8_t, uint8_t, uint16_t);         
   bool      setDebounceTime(uint8_t);     // set the Debounce Time of the switch (5 .. 250 micro seconds)
   bool      setMidPressTime(uint16_t);    // set the Mid Press Time of the switch (100 .. 5000 milli seconds)
   bool      setLongPressTime(uint16_t);   // set the Long Press Time of the switch (300 .. 10000 milli seconds)
@@ -98,10 +108,11 @@ public:
 //-------------------------------------------------------------------------------------
 //-------------------------- HELPERS --------------------------------------------------
 //-------------------------------------------------------------------------------------
-  bool      isSlotPressed(uint8_t);            // true if the Button is pressed
-  bool      isSlotQuickReleased(uint8_t);      // true if the Button is released before midPressTime
-  bool      isSlotMidReleased(uint8_t);        // true if the Button is released between midPressTime and longPressTime
-  bool      isSlotLongReleased(uint8_t);       // true if the Button is released after longPressTime
+  bool      isSlotPressed(uint8_t);           // true if the Button is pressed
+  bool      isSlotQuickReleased(uint8_t);     // true if the Button is released before midPressTime
+  bool      isSlotMidReleased(uint8_t);       // true if the Button is released between midPressTime and longPressTime
+  bool      isSlotLongReleased(uint8_t);      // true if the Button is released after longPressTime
+  bool      readSlot(uint8_t);                // true if slot is High
 
   void printRegister(HardwareSerial *serOut, size_t const size, void const * const ptr);
 

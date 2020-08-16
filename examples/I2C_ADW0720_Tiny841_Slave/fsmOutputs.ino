@@ -1,5 +1,5 @@
 /*
-**    Program : fsmOutputs (part of I2C_ExtPlus_Tiny841_Slave)
+**    Program : fsmOutputs (part of I2C_ADW0720_Tiny841_Slave)
 **
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -25,35 +25,43 @@ void handleOutput(uint8_t slotNr)
               {
                 if (millis() > slot[slotNr].durationTimer)
                 {
+                  registerStack.slotStatus[slotNr] = 0;
+                  SETBIT(registerStack.slotStatus[slotNr], SLT_TOGGLE_BIT);
                   slot[slotNr].duration      = 0;
                   slot[slotNr].durationTimer = 0;
                   slot[slotNr].isHigh        = false;
-                  slot[slotNr].state         = OUTPUT_DEFAULT;
-                  break;
+                  slot[slotNr].pwmValue      = 0;
+//                slot[slotNr].state         = OUTPUT_DEFAULT;
+//                break;
                 }
               }
               slot[slotNr].state = OUTPUT_DEFAULT;
               break;
+              
     case OUTPUT_PULSE_ON:
               //Debug("slot["); Debug(slotNr); Debugln("] PULSE_ON");
               //Debug("highTime : "); Debugln(slot[slotNr].highTime); DebugFlush();
               //Debug("lowTime  : "); Debugln(slot[slotNr].lowTime);  DebugFlush();
               //Debug("duration : "); Debugln(slot[slotNr].duration); DebugFlush();
-              slotWrite(slotNr, HIGH);
               if (slot[slotNr].duration > 0) 
               {
                 //Debug("millis() : "); Debugln( millis() ); DebugFlush();
                 //Debug("timer    : "); Debugln( slot[slotNr].durationTimer ); DebugFlush();
                 if (millis() > slot[slotNr].durationTimer)
                 {
+                  registerStack.slotStatus[slotNr] = 0;
+                  SETBIT(registerStack.slotStatus[slotNr],   SLT_TOGGLE_BIT);
+                  slotWrite(slotNr, LOW);
                   Debugln("duration elapsed");
                   slot[slotNr].duration      = 0;
                   slot[slotNr].durationTimer = 0;
                   slot[slotNr].isHigh        = false;
+                  slot[slotNr].pwmValue      = 0;
                   slot[slotNr].state         = OUTPUT_DEFAULT;
                   break;
                 }
               }
+              slotWrite(slotNr, HIGH);
               //Debug("highTimer  : "); Debugln( slot[slotNr].highTimer ); DebugFlush();
               if (millis() > slot[slotNr].highTimer)
               {
@@ -63,6 +71,7 @@ void handleOutput(uint8_t slotNr)
               }
               slot[slotNr].state = OUTPUT_PULSE_ON;
               break;
+              
     case OUTPUT_PULSE_OFF:
               //Debug("slot["); Debug(slotNr); Debugln("] PULSE_OFF");
               slotWrite(slotNr, LOW);
@@ -70,11 +79,84 @@ void handleOutput(uint8_t slotNr)
               {
                 slot[slotNr].highTimer = millis() + slot[slotNr].highTime;
                 slot[slotNr].isHigh    = true;
+                slot[slotNr].pwmValue  = 0;
                 slot[slotNr].state     = OUTPUT_PULSE_ON;
                 break;
               }
               slot[slotNr].state     = OUTPUT_PULSE_OFF;
               break;
+              
+    case OUTPUT_PWM_SET:
+              Debug("slot["); Debug(slotNr); Debugln("] PWM_SET");
+              Debug("pwmValue : "); Debugln(slot[slotNr].pwmValue); DebugFlush();
+              Debug("duration : "); Debugln(slot[slotNr].duration); DebugFlush();
+              if (slot[slotNr].pwmValue == 0)
+              {
+                Debugln("OUTPUT_PWM_SET: switched off by value 0");
+                registerStack.slotStatus[slotNr] = 0;
+                SETBIT(registerStack.slotStatus[slotNr], SLT_TOGGLE_BIT);
+                slotWrite(slotNr, LOW);
+                slot[slotNr].isHigh = false;
+                slot[slotNr].state  = OUTPUT_DEFAULT;
+                break;
+              }
+              if (slot[slotNr].duration > 0) 
+              {
+                //Debug("millis() : "); Debugln( millis() ); DebugFlush();
+                //Debug("timer    : "); Debugln( slot[slotNr].durationTimer ); DebugFlush();
+                if (millis() > slot[slotNr].durationTimer)
+                {
+                  Debugln("duration elapsed");
+                  registerStack.slotStatus[slotNr] = 0;
+                  SETBIT(registerStack.slotStatus[slotNr], SLT_TOGGLE_BIT);
+                  slotWrite(slotNr, LOW);
+                  slot[slotNr].duration      = 0;
+                  slot[slotNr].durationTimer = 0;
+                  slot[slotNr].isHigh        = false;
+                  slot[slotNr].pwmValue      = 0;
+                  slot[slotNr].state         = OUTPUT_DEFAULT;
+                  break;
+                }
+              }
+              slotWritePWM(slotNr, slot[slotNr].pwmValue);
+              slot[slotNr].state = OUTPUT_PWM;
+              break;
+              
+    case OUTPUT_PWM:
+              //Debug("slot["); Debug(slotNr); Debugln("] PWM");
+              //Debug("highTime : "); Debugln(slot[slotNr].highTime); DebugFlush();
+              //Debug("duration : "); Debugln(slot[slotNr].duration); DebugFlush();
+              if (slot[slotNr].pwmValue == 0)
+              {
+                Debugln("OUTPUT_PWM: switched off by value 0");
+                registerStack.slotStatus[slotNr] = 0;
+                SETBIT(registerStack.slotStatus[slotNr], SLT_TOGGLE_BIT);
+                slotWrite(slotNr, LOW);
+                slot[slotNr].pwmValue = 0;
+                slot[slotNr].state    = OUTPUT_DEFAULT;
+                break;
+              }
+              if (slot[slotNr].duration > 0) 
+              {
+                //Debug("millis() : "); Debugln( millis() ); DebugFlush();
+                //Debug("timer    : "); Debugln( slot[slotNr].durationTimer ); DebugFlush();
+                if (millis() > slot[slotNr].durationTimer)
+                {
+                  Debugln("duration elapsed");
+                  registerStack.slotStatus[slotNr] = 0;
+                  SETBIT(registerStack.slotStatus[slotNr], SLT_TOGGLE_BIT);
+                  slotWrite(slotNr, LOW);
+                  slot[slotNr].duration      = 0;
+                  slot[slotNr].durationTimer = 0;
+                  slot[slotNr].isHigh        = false;
+                  slot[slotNr].pwmValue      = 0;
+                  slot[slotNr].state         = OUTPUT_DEFAULT;
+                  break;
+                }
+              }
+              slot[slotNr].state = OUTPUT_PWM;
+              break;
+              
     default: slot[slotNr].state = OUTPUT_DEFAULT;
 
   } // switch(slot[slotNr].state)

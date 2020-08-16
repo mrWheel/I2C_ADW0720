@@ -1,5 +1,5 @@
 /*
-**    Program : EepromStuff (part of I2C_ExtPlus_Tiny841_Slave)
+**    Program : EepromStuff (part of I2C_ADW0720_Tiny841_Slave)
 **
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -15,17 +15,18 @@ static void readConfig()
 
   eeprom_read_block(&registersSaved, 0, sizeof(registersSaved));
   //--- the registerStack will not change in the same Major Version --
-  if ( registersSaved.majorRelease == _MAJOR_VERSION ) {
+  if ( registersSaved.majorRelease == _MAJOR_RELEASE ) 
+  {
     registerStack = registersSaved;
+    registerStack.minorRelease = _MINOR_RELEASE;
     digitalWrite(LED_BUILTIN, HIGH);
-    //*slot[0].port |= _BV(slot[0].bit); // cannot use this until config is read
 
   //--- the Major version has changed and there is no way of -----
   //--- knowing the registerStack has not changed, so rebuild ----
   } else {  
     registerStack.address       = _I2C_DEFAULT_ADDRESS;
-    registerStack.majorRelease  = _MAJOR_VERSION;
-    registerStack.minorRelease  = _MINOR_VERSION;
+    registerStack.majorRelease  = _MAJOR_RELEASE;
+    registerStack.minorRelease  = _MINOR_RELEASE;
     registerStack.slotModes     =  0xFF;
     registerStack.debounceTime  =    10;
     registerStack.midPressTime  =   500;

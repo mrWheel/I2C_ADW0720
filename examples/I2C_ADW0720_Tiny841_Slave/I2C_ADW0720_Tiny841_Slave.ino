@@ -1,9 +1,9 @@
 /*
 **    Program : I2C_ADW0720_Tiny841_Slave
-**    Date    : 14-08-2020
+**    Date    : 16-08-2020
 */
-#define _MAJOR_VERSION  1
-#define _MINOR_VERSION  4
+#define _MAJOR_RELEASE  1
+#define _MINOR_RELEASE  4
 /*
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -44,10 +44,10 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#define SETBIT(regByte, bit)       (regByte) |=  (1 << (bit))
-#define CLEARBIT(regByte, bit)     (regByte) &= ~(1 << (bit))
+#define SETBIT(regByte,      bit)  (regByte) |=  (1 << (bit))
+#define CLEARBIT(regByte,    bit)  (regByte) &= ~(1 << (bit))
 #define BIT_IS_HIGH(regByte, bit)  ((regByte) & (1<<(bit)))
-#define BIT_IS_LOW(regByte, bit)   (!(BIT_IS_HIGH(regByte, bit)))
+#define BIT_IS_LOW(regByte,  bit)  (!(BIT_IS_HIGH(regByte, bit)))
 
 #define _I2C_DEFAULT_ADDRESS  0x18
 
@@ -77,11 +77,19 @@
 enum  {  CMD_READCONF, CMD_WRITECONF, CMD_DUM2, CMD_DUM3, CMD_DUM4, CMD_DUM5
        , CMD_DUM6,  CMD_REBOOT
       };
+
 //------ slotStatus bit's ------------------------------------------------------
-enum  {  SLT_PRESSED_BIT, SLT_QUICKRELEASE_BIT, SLT_MIDRELEASE_BIT, SLT_LONGRELEASE_BIT 
-       , SLT_HIGH_BIT, SLT_TOGGLE_BIT, SLT_PULSE_BIT };
+enum  {  SLT_PRESSED_BIT        // bit 0  Input 1 if Button pressed
+       , SLT_QUICKRELEASE_BIT   // bit 1  Input 1 if Button Quick Released
+       , SLT_MIDRELEASE_BIT     // bit 2  Input 1 if Button Mid Released
+       , SLT_LONGRELEASE_BIT    // bit 3  Input 1 if Button Long Released
+       , SLT_TOGGLE_BIT         // bit 4  output 1 in Toggle mode
+       , SLT_PULSE_BIT          // bit 5  output 1 in Pulse mode
+       , SLT_PWM_BIT            // bit 6  output 1 in PWM mode
+       , SLT_HIGH_BIT           // bit 7  output 1 bit is HIGH
+      };
 //------ finite states Outputs -------------------------------------------------
-enum  {  OUTPUT_DEFAULT, OUTPUT_PULSE_ON, OUTPUT_PULSE_OFF};
+enum  {  OUTPUT_DEFAULT, OUTPUT_PULSE_ON, OUTPUT_PULSE_OFF, OUTPUT_PWM_SET, OUTPUT_PWM };
 //------ finite states Inputs --------------------------------------------------
 enum  {  BTN_INIT, BTN_FIRST_PRESS, BTN_IS_PRESSED, BTN_FIRST_RELEASE, BTN_IS_RELEASED };
 
@@ -98,36 +106,38 @@ struct registerLayout {
   uint16_t  longPressTime;      // 0x10 (R/W) - 2 bytes 0x10 0x11
   byte      tmpSlotNr;          // 0x12 (R/W) -->> _TMPSLOTNR must be the same offset
   byte      tmpOutputFunc;      // 0x13 (R/W)
-  uint16_t  tmpPulseHighTime;   // 0x14 (R/W) - 2 bytes 0x14 0x15
-  uint16_t  tmpPulseLowTime;    // 0x16 (R/W) - 2 bytes 0x16 0x17
-  uint16_t  tmpStateDuration;   // 0x18 (R/W) - 2 bytes 0x18 0x19
-  uint8_t   modeSettings;       // 0x1A (R/W) -->> _MODESETTINGS must be the same offset <<--
-  byte      filler[4];          // 0x1B -> 0x1B, 0x1C, 0x1D, 0x1F
+  uint8_t   tmpPWMvalue;        // 0x14 (R/W)
+  uint16_t  tmpPulseHighTime;   // 0x15 (R/W) - 2 bytes 0x15 0x16
+  uint16_t  tmpPulseLowTime;    // 0x17 (R/W) - 2 bytes 0x17 0x18
+  uint16_t  tmpStateDuration;   // 0x19 (R/W) - 2 bytes 0x19 0x1A
+  uint8_t   modeSettings;       // 0x1B (R/W) -->> _MODESETTINGS must be the same offset <<--
+  byte      filler[4];          // 0x1C -> 0x1C, 0x1D, 0x1E, 0x1F
 };
 
 #define _TMPSLOTNR      0x12
 #define _SLOTMODES      0x0C
-#define _MODESETTINGS   0x1A
+#define _MODESETTINGS   0x1B
 #define _CMD_REGISTER   0xF0  // not a real register!
 
 //These are the defaults for all settings
 volatile registerLayout registerStack = {
   .address =    _I2C_DEFAULT_ADDRESS,     // 0x00
-  .majorRelease =     _MAJOR_VERSION,     // 0x01
-  .minorRelease =     _MINOR_VERSION,     // 0x02
+  .majorRelease =     _MAJOR_RELEASE,     // 0x01
+  .minorRelease =     _MINOR_RELEASE,     // 0x02
   .sysStatus =                     0,     // 0x03
   .slotStatus =    {0,0,0,0,0,0,0,0},     // 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
-  .slotModes =                  0xFF,     // 0x0C   -> default is INPUT
+  .slotModes =                  0xFF,     // 0x0C   -> default all Slots INPUT
   .debounceTime =                  5,     // 0x0D
   .midPressTime =                500,     // 0x0E 2 --> 0x0E 0x0F
   .longPressTime =              1500,     // 0x10 2 --> 0x10 0x11
   .tmpSlotNr =                     0,     // 0x12
   .tmpOutputFunc =                 0,     // 0x13
-  .tmpPulseHighTime =              0,     // 0x14 2 --> 0x14 0x15
-  .tmpPulseLowTime =               0,     // 0x16 2 --> 0x16 0x17
-  .tmpStateDuration =              0,     // 0x18 2 --> 0x18 0x19
-  .modeSettings =               0x00,     // 0x1A
-  .filler =  {0xFF, 0xFF, 0xFF, 0xFF}     // 0x1B 4 --> 0x1B, 0x1C, 0x1D, 0x1F
+  .tmpPWMvalue =                   0,     // 0x14
+  .tmpPulseHighTime =              0,     // 0x15 2 --> 0x15 0x16
+  .tmpPulseLowTime =               0,     // 0x17 2 --> 0x17 0x18
+  .tmpStateDuration =              0,     // 0x19 2 --> 0x19 0x1A
+  .modeSettings =               0x00,     // 0x1B
+  .filler =  {0xFF, 0xFF, 0xFF, 0xFF}     // 0x1C 4 --> 0x1C, 0x1D, 0x1E, 0x1F
 };
 
 //Cast 32bit address of the object registerStack with uint8_t so we can increment the pointer
@@ -141,6 +151,7 @@ static uint16_t   store=0;
 struct slotFields {
   byte      state;
   bool      isHigh;
+  uint8_t   pwmValue;
   uint32_t  durationTimer;
   uint16_t  duration;
   uint32_t  highTimer;
@@ -166,14 +177,14 @@ void setSlotAsOutput(uint8_t slotNr)
   switch(slotNr)
   {
     #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
-      case 0:   pinMode(10, OUTPUT); break;
-      case 1:   pinMode( 9, OUTPUT); break;
-      case 2:   pinMode( 8, OUTPUT); break;
-      case 3:   pinMode( 7, OUTPUT); break;
-      case 4:   pinMode( 3, OUTPUT); break;
-      case 5:   pinMode( 2, OUTPUT); break;
-      case 6:   pinMode( 1, OUTPUT); break;
-      case 7:   pinMode( 0, OUTPUT); break;
+      case 0:   pinMode(PIN_PB0, OUTPUT); break;
+      case 1:   pinMode(PIN_PB1, OUTPUT); break;
+      case 2:   pinMode(PIN_PB2, OUTPUT); break;
+      case 3:   pinMode(PIN_PA7, OUTPUT); break;
+      case 4:   pinMode(PIN_PA3, OUTPUT); break;
+      case 5:   pinMode(PIN_PA2, OUTPUT); break;
+      case 6:   pinMode(PIN_PA1, OUTPUT); break;
+      case 7:   pinMode(PIN_PA0, OUTPUT); break;
     #endif
     #if defined (__AVR_ATmega328P__)
       case 0:   pinMode( 8, OUTPUT); break;
@@ -187,6 +198,7 @@ void setSlotAsOutput(uint8_t slotNr)
     #endif
   }
   CLEARBIT(registerStack.slotModes, slotNr);
+  registerStack.slotStatus[slotNr] = 0;
   slot[slotNr].state = OUTPUT_DEFAULT; 
 
 } // setSlotAsOutput()
@@ -200,14 +212,14 @@ void setSlotAsInput(uint8_t slotNr)
   switch(slotNr)
   {
     #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
-      case 0:   pinMode(10, INPUT_PULLUP); break;
-      case 1:   pinMode( 9, INPUT_PULLUP); break;
-      case 2:   pinMode( 8, INPUT_PULLUP); break;
-      case 3:   pinMode( 7, INPUT_PULLUP); break;
-      case 4:   pinMode( 3, INPUT_PULLUP); break;
-      case 5:   pinMode( 2, INPUT_PULLUP); break;
-      case 6:   pinMode( 1, INPUT_PULLUP); break;
-      case 7:   pinMode( 0, INPUT_PULLUP); break;
+      case 0:   pinMode(PIN_PB0, INPUT_PULLUP); break;
+      case 1:   pinMode(PIN_PB1, INPUT_PULLUP); break;
+      case 2:   pinMode(PIN_PB2, INPUT_PULLUP); break;
+      case 3:   pinMode(PIN_PA7, INPUT_PULLUP); break;
+      case 4:   pinMode(PIN_PA3, INPUT_PULLUP); break;
+      case 5:   pinMode(PIN_PA2, INPUT_PULLUP); break;
+      case 6:   pinMode(PIN_PA1, INPUT_PULLUP); break;
+      case 7:   pinMode(PIN_PA0, INPUT_PULLUP); break;
     #endif
     #if defined (__AVR_ATmega328P__)
       case 0:   pinMode( 8, INPUT_PULLUP); break;
@@ -221,6 +233,7 @@ void setSlotAsInput(uint8_t slotNr)
     #endif
   }
   SETBIT(registerStack.slotModes, slotNr); 
+  registerStack.slotStatus[slotNr] = 0;
   
 } // setSlotAsInput()
 
@@ -254,7 +267,9 @@ bool slotRead(uint8_t slotNr)
       case 7:   //--- PA0, slot7, D0
                 return(BIT_IS_HIGH(PINA, 0));
                 break;
+      default:  return false;
     #endif
+    
     #if defined (__AVR_ATmega328P__)
       case 0:   return(digitalRead( 8)); break;
       case 1:   return(digitalRead( 9)); break;
@@ -264,6 +279,7 @@ bool slotRead(uint8_t slotNr)
       case 5:   return(digitalRead(A1)); break;
       case 6:   return(digitalRead(A2)); break;
       case 7:   return(digitalRead(A3)); break;
+      default:  return false;
     #endif
   }
 } // slotRead()
@@ -275,38 +291,32 @@ void slotWrite(uint8_t slotNr, bool newState)
   {
     #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
       case 0:   //--- PB0, slot0, D10
-                if (newState) SETBIT(PORTB, 0); 
-                else          CLEARBIT(PORTB, 0);
+                digitalWrite(PIN_PB0, newState);
                 break;
       case 1:   //--- PB1, slot1, D9
-                if (newState) SETBIT(PORTB, 1); 
-                else          CLEARBIT(PORTB, 1);
+                digitalWrite(PIN_PB1, newState);
                 break;
       case 2:   //--- PB2, slot2, D8
-                if (newState) SETBIT(PORTB, 2); 
-                else          CLEARBIT(PORTB, 2);
+                digitalWrite(PIN_PB2, newState);
                 break;
       case 3:   //--- PA7, slot3, D7
-                if (newState) SETBIT(PORTA, 7); 
-                else          CLEARBIT(PORTA, 7);
+                digitalWrite(PIN_PA7, newState);
                 break;
       case 4:   //--- PA3, slot4, D3
-                if (newState) SETBIT(PORTA, 3); 
-                else          CLEARBIT(PORTA, 3);
+                digitalWrite(PIN_PA3, newState);
                 break;
       case 5:   //--- PA2, slot5, D2
-                if (newState) SETBIT(PORTA, 2); 
-                else          CLEARBIT(PORTA, 2);
+                digitalWrite(PIN_PA2, newState);
                 break;
       case 6:   //--- PA1, slot6, D1
-                if (newState) SETBIT(PORTA, 1); 
-                else          CLEARBIT(PORTA, 1);
+                digitalWrite(PIN_PA1, newState);
                 break;
       case 7:   //--- PA0, slot7, D0
-                if (newState) SETBIT(PORTA, 0); 
-                else          CLEARBIT(PORTA, 0);
+                digitalWrite(PIN_PA0, newState);
                 break;
+      default:  return;
     #endif
+
     #if defined (__AVR_ATmega328P__)
       case 0:   digitalWrite( 8, newState); break;
       case 1:   digitalWrite( 9, newState); break;
@@ -316,37 +326,61 @@ void slotWrite(uint8_t slotNr, bool newState)
       case 5:   digitalWrite(A1, newState); break;
       case 6:   digitalWrite(A2, newState); break;
       case 7:   digitalWrite(A3, newState); break;
+      default:  return;
     #endif
   }
   slot[slotNr].state = OUTPUT_DEFAULT;
+  if (newState)
+        SETBIT(registerStack.slotStatus[slotNr],   SLT_HIGH_BIT);
+  else  CLEARBIT(registerStack.slotStatus[slotNr], SLT_HIGH_BIT);
   
 } // slotWrite()
+
+//==========================================================================
+void slotWritePWM(uint8_t slotNr, uint8_t pwmValue)
+{
+  switch(slotNr)
+  {
+    #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
+      case 2:   //--- PB2, slot2, D8
+                analogWrite(PIN_PB2, pwmValue);
+                slot[slotNr].state = OUTPUT_PWM_SET;
+                break;
+      case 3:   //--- PA7, slot3, D7
+                analogWrite(PIN_PA7, pwmValue);
+                slot[slotNr].state = OUTPUT_PWM_SET;
+                break;
+      case 4:   //--- PA3, slot4, D3
+                analogWrite(PIN_PA3, pwmValue);
+                slot[slotNr].state = OUTPUT_PWM_SET;
+                break;
+      default:  slot[slotNr].state = OUTPUT_DEFAULT;
+                return;
+    #endif
+    #if defined (__AVR_ATmega328P__)
+      case 2:   analogWrite(10, pwmValue); 
+                slot[slotNr].state = OUTPUT_PWM_SET; 
+                break;
+      case 3:   analogWrite(11, pwmValue); 
+                slot[slotNr].state = OUTPUT_PWM_SET; 
+                break;
+      case 4:   analogWrite(A0, pwmValue); 
+                slot[slotNr].state = OUTPUT_PWM_SET; 
+                break;
+      default:  slot[slotNr].state = OUTPUT_DEFAULT;
+                return;
+    #endif
+  }
+  if (pwmValue > 0)
+        SETBIT(registerStack.slotStatus[slotNr],   SLT_HIGH_BIT);
+  else  CLEARBIT(registerStack.slotStatus[slotNr], SLT_HIGH_BIT);
+  
+} // slotWritePWM()
 
 //==========================================================================
 void reBoot()
 {
   Wire.end();
-/***
-  //-- Pulse Output Slots (On) -
-  for (int b=0; b<10; b++) 
-  {
-    for (uint8_t s=0; s<8; s++)
-    {
-      // only handle output slots
-      if ( BIT_IS_HIGH(registerStack.slotModes, s) ) continue;
-      slotWrite(s, HIGH);
-      delay(100);
-    }
-    delay(1000);
-    for (uint8_t s=0; s<8; s++)
-    {
-      // only handle output slots
-      if ( BIT_IS_HIGH(registerStack.slotModes, s) ) continue;
-      slotWrite(s, LOW);
-      delay(100);
-    }
-  }
-***/
   //-- restart slave
   setup();
 
@@ -354,35 +388,21 @@ void reBoot()
 
 
 //==========================================================================
-void activatePulseOutput(uint8_t slotNr, uint16_t setHighTime
-                                       , uint16_t setLowTime
-                                       , uint16_t stateDuration)
+void activateToggleOutput(uint8_t slotNr, bool setOutputHigh, uint16_t stateDuration)
 {
-  slot[slotNr].durationTimer = millis() + stateDuration;
-  slot[slotNr].duration      = stateDuration;
-  slot[slotNr].highTime      = setHighTime;
-  slot[slotNr].highTimer     = millis() + setHighTime;
-  slot[slotNr].lowTime       = setLowTime;
-  slot[slotNr].lowTimer      = millis() + setLowTime;
-  slot[slotNr].state         = OUTPUT_PULSE_ON;
-
-  Debug("activatePulseOutput("); Debug(slotNr);  Debugln("):"); DebugFlush();
-  Debugln(slot[slotNr].highTime); DebugFlush();
-  Debugln(slot[slotNr].lowTime);  DebugFlush();
-  Debugln(slot[slotNr].duration); DebugFlush();
-  Debugln(slot[slotNr].state);    DebugFlush();
-
-} // activatePulseOutput()
-
-
-//==========================================================================
-void activateToggleOutput(uint8_t slotNr, bool outputIsHigh, uint16_t stateDuration)
-{
-
   Debug("activateToggleOutput("); Debug(slotNr); Debugln(")..");DebugFlush();
+
+  if (slotNr < 0 || slotNr > 7) return;
+
+  SETBIT(registerStack.slotStatus[slotNr], SLT_TOGGLE_BIT);
+  if (setOutputHigh)
+        SETBIT(registerStack.slotStatus[slotNr],   SLT_HIGH_BIT);
+  else  CLEARBIT(registerStack.slotStatus[slotNr], SLT_HIGH_BIT);
+  
   slot[slotNr].durationTimer = millis() + stateDuration;
   slot[slotNr].duration      = stateDuration;
-  slot[slotNr].isHigh        = outputIsHigh;
+  slot[slotNr].isHigh        = setOutputHigh;
+  slot[slotNr].pwmValue      = 0;
   slot[slotNr].highTime      = 0;
   slot[slotNr].highTimer     = 0;
   slot[slotNr].lowTime       = 0;
@@ -393,27 +413,103 @@ void activateToggleOutput(uint8_t slotNr, bool outputIsHigh, uint16_t stateDurat
 
 
 //==========================================================================
+void activatePulseOutput(uint8_t slotNr, uint16_t setHighTime
+                                       , uint16_t setLowTime
+                                       , uint16_t stateDuration)
+{
+  Debug("activatePulseOutput("); Debug(slotNr);  Debugln("):"); DebugFlush();
+
+  if (slotNr < 0 || slotNr > 7) return;
+  
+  SETBIT(registerStack.slotStatus[slotNr], SLT_PULSE_BIT);
+  
+  slot[slotNr].durationTimer = millis() + stateDuration;
+  slot[slotNr].duration      = stateDuration;
+  slot[slotNr].pwmValue      = 0;
+  slot[slotNr].highTime      = setHighTime;
+  slot[slotNr].highTimer     = millis() + setHighTime;
+  slot[slotNr].lowTime       = setLowTime;
+  slot[slotNr].lowTimer      = millis() + setLowTime;
+  slot[slotNr].state         = OUTPUT_PULSE_ON;
+
+  Debugln(slot[slotNr].highTime); DebugFlush();
+  Debugln(slot[slotNr].lowTime);  DebugFlush();
+  Debugln(slot[slotNr].duration); DebugFlush();
+  Debugln(slot[slotNr].state);    DebugFlush();
+
+} // activatePulseOutput()
+
+
+//==========================================================================
+void activatePwmOutput(uint8_t slotNr, uint8_t pwmVal
+                                     , uint16_t stateDuration)
+{
+  Debug("activatePwmOutput("); Debug(slotNr);  Debugln("):"); DebugFlush();
+
+  if (slotNr != 2 && slotNr != 3 && slotNr != 4) return;
+
+  if (pwmVal > 0)
+  {
+    SETBIT(registerStack.slotStatus[slotNr], SLT_PWM_BIT);
+    slot[slotNr].state      = OUTPUT_PWM_SET;
+  }
+  else
+  {
+    activateToggleOutput(slotNr, LOW, stateDuration);
+    slotWrite(slotNr, LOW);
+    return;
+  }
+  
+  slot[slotNr].durationTimer = millis() + stateDuration;
+  slot[slotNr].duration      = stateDuration;
+  slot[slotNr].isHigh        = false;
+  slot[slotNr].pwmValue      = pwmVal;
+  slot[slotNr].highTime      = 0;
+  slot[slotNr].highTimer     = 0;
+  slot[slotNr].lowTime       = 0;
+  slot[slotNr].lowTimer      = 0;
+
+  Debugln(slot[slotNr].pwmValue); DebugFlush();
+  Debugln(slot[slotNr].duration); DebugFlush();
+  Debugln(slot[slotNr].state);    DebugFlush();
+
+} // activatePwmOutput()
+
+
+//==========================================================================
 void setOutputFunc(uint8_t slotNr, byte outputFunc
+                             , uint8_t  pwmValue
                              , uint16_t pulseHighTime
                              , uint16_t pulseLowTime
                              , uint16_t stateDuration)
 {
-  bool outputIsHigh;
+  bool setOutputHigh;
   uint8_t func = 0;
 
-  Debug("outputFunc: "); Debug(outputFunc, BIN); DebugFlush();
+  Debug("outputFunc: "); showRegister(1, &outputFunc); Debugln(); DebugFlush();
+
+  if (slotNr < 0 || slotNr > 7) return;
+
+  //-- first clear the slotStatus ----
+  registerStack.slotStatus[slotNr] = 0;
 
   if ( BIT_IS_HIGH(outputFunc, SLT_TOGGLE_BIT) )   // Function is On/Off
   {
-    Debug("activateToggleOutput() slot["); Debug(slotNr); Debug("]==> ");
-    outputIsHigh = BIT_IS_HIGH(outputFunc, SLT_HIGH_BIT); // High or Low
-    Debugln(outputIsHigh ? "HIGH" : "LOW");
-    activateToggleOutput(slotNr, outputIsHigh, stateDuration);
+    Debug("setOutputFunc() slot["); Debug(slotNr); Debug("]==> ");
+    setOutputHigh = BIT_IS_HIGH(outputFunc, SLT_HIGH_BIT); // High or Low
+    Debugln(setOutputHigh ? "HIGH" : "LOW");
+    activateToggleOutput(slotNr, setOutputHigh, stateDuration);
   }
   else if( BIT_IS_HIGH(outputFunc, SLT_PULSE_BIT) )   // Function is Pulse
   {
-    Debugln("activatePulseOutput() slot["); Debug(slotNr); Debugln("]");
+    Debugln("setOutputFunc() slot["); Debug(slotNr); Debugln("]");
     activatePulseOutput(slotNr, pulseHighTime, pulseLowTime, stateDuration);
+  }
+  else if( BIT_IS_HIGH(outputFunc, SLT_PWM_BIT) )   // Function is PWM
+  {
+    Debug("setOutputFunc() slot["); Debug(slotNr); Debug("] ");
+    Debug(", PWM value["); Debug(pwmValue); Debugln("] ");
+    activatePwmOutput(slotNr, pwmValue, stateDuration);
   }
 
 } // setOutputFunc()
@@ -425,7 +521,7 @@ void updateSlotModes()
   Debug("updateSlotModes(): slotMode --> ");
   showRegister(1, &registerStack.slotModes);
   Debugln();
-  for (uint8_t slt=0; slt<8; slt++)
+  for (int8_t slt=0; slt<8; slt++)
   {
     Debug("set slot["); Debug(slt); 
     if ( BIT_IS_HIGH(registerStack.slotModes, slt) )   //-- input pin
@@ -474,7 +570,7 @@ void setup()
   }
   ***/
   registerStack.sysStatus = 0;
-  for(uint8_t r=0; r<7; r++)  registerStack.slotStatus[r] = 0;
+  for(int8_t r=0; r<7; r++)  registerStack.slotStatus[r] = 0;
   
 #if defined (__AVR_ATmega328P__)
   Debugln("slotModes: ");
@@ -489,7 +585,7 @@ void setup()
   Debug("slotModes:");
   showRegister(1, &registerStack.slotModes);
   Debugln();
-  for (uint8_t s=0; s<8; s++)
+  for (int8_t s=0; s<8; s++)
   {
     Debug("Slot["); Debug(s);
     if ( BIT_IS_HIGH(registerStack.slotModes, s) )  
@@ -497,7 +593,7 @@ void setup()
     else  {Debugln("] => output");}
   }
 
-  Debugln("\n\rI2C_ExtPlus_Tiny841_Slave waiting for your command's ....\r\n");
+  Debugln("\n\rI2C_ADW0720_Tiny841_Slave waiting for your command's ....\r\n");
 
 #endif
   
@@ -511,7 +607,7 @@ void loop()
   * mail Loop takes about 142.85 micro seconds to complete with 
   * all eight slots serviced.
   */
-  for (uint8_t s=0; s<8; s++)
+  for (int8_t s=0; s<8; s++)
   {
     //-- test if slot is set as input (default) 
     if (BIT_IS_HIGH(registerStack.slotModes, s) )  

@@ -1,5 +1,5 @@
 /*
-**    Program : I2Cstuff (part of I2C_ExtPlus_Tiny841_Slave)
+**    Program : I2Cstuff (part of I2C_ADW0720_Tiny841_Slave)
 **
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -106,7 +106,7 @@ void receiveEvent(int numberOfBytesReceived)
         Debug("SLOTMODES!!>>:");
         showRegister(1, &registerStack.slotModes);
         Debugln(); DebugFlush();
-        for (uint8_t slt=0; slt<8; slt++)
+        for (int8_t slt=0; slt<8; slt++)
         {
           //-- if it's output change it!
           if ( BIT_IS_HIGH(registerStack.slotModes, slt) )   //-- output pin
@@ -122,22 +122,28 @@ void receiveEvent(int numberOfBytesReceived)
     }
   }
 
+  //-- setting the type of output and output params 
+  //-- you first have to store the applicable params
+  //-- in the tmpRegisters.
+  //-- last setting is the slot number to which the
+  //-- above should apply.
   if (registerNumber == _TMPSLOTNR)  // temp.slot Nr!!!
   { 
 #if defined (__AVR_ATmega328P__)
-    Debug("slot: "); Debug(registerStack.tmpSlotNr); DebugFlush();
-    Debug("   set to:"); Debugln(registerStack.tmpOutputFunc, BIN); 
+    Debug("tmpSlotNr: ["); Debug(registerStack.tmpSlotNr); Debugln("]"); DebugFlush();
+    Debug("   set to:"); showRegister(1, &registerStack.tmpOutputFunc); Debugln(); 
+    Debug(" pwmValue:"); Debugln(registerStack.tmpPWMvalue); 
     Debug(" highTime:"); Debugln(registerStack.tmpPulseHighTime); 
     Debug("  lowTime:"); Debugln(registerStack.tmpPulseLowTime); 
     Debug(" Duration:"); Debugln(registerStack.tmpStateDuration); 
     DebugFlush();
 #endif
     setOutputFunc(registerStack.tmpSlotNr, registerStack.tmpOutputFunc
-                                     , registerStack.tmpPulseHighTime
-                                     , registerStack.tmpPulseLowTime
-                                     , registerStack.tmpStateDuration);
+                                         , registerStack.tmpPWMvalue
+                                         , registerStack.tmpPulseHighTime
+                                         , registerStack.tmpPulseLowTime
+                                         , registerStack.tmpStateDuration);
   }
-
 
   if (registerNumber == _MODESETTINGS)  // mode Settings
   {
@@ -168,23 +174,31 @@ void requestEvent()
   //--
   //-- registerNumber == 0x04 => slotStatus[0]
   //-- [7][6][5][4][3][2][1][0]  <--- slotStatus[x] register bits
-  //--              ^  ^  ^  ^ 
-  //--              |  |  |  +--------------> 1 if Button pressed
-  //--              |  |  +-----------------> 1 if Button Quick Released
-  //--              |  +--------------------> 1 if Button Mid Released
-  //--              +-----------------------> 1 if Button Long Released
+  //--  ^  ^  ^  ^  ^  ^  ^  ^ 
+  //--  |  |  |  |  |  |  |  +--------------> Input 1 if Button pressed
+  //--  |  |  |  |  |  |  +-----------------> Input 1 if Button Quick Released
+  //--  |  |  |  |  |  +--------------------> Input 1 if Button Mid Released
+  //--  |  |  |  |  +-----------------------> Input 1 if Button Long Released
+  //--  |  |  |  +--------------------------> output 1 in PWM mode
+  //--  |  |  +-----------------------------> output 1 in Toggle mode
+  //--  |  +--------------------------------> output 1 in Pulse mode
+  //--  +-----------------------------------> output 1 bit is HIGH 
   //--
   //-- registerNumber == 0x04 => slotStatus[0]
   //-- registerNumber == 0x0B => slotStatus[7]
   if ( (registerNumber >= 0x04) && (registerNumber <= 0x0B) )
   {
-    //--- clear sysStatus for this slot
-    CLEARBIT(registerStack.sysStatus, (registerNumber - 4));
-    #if defined (__AVR_ATmega328P__)
-      Debug("CLEARBIT(sysStatus, "); Debug((registerNumber - 4)); Debugln(")");
-      Debug("requestEvent(b): Reset byte[0x0"); Debug(registerNumber, HEX); Debugln("] ..");
-    #endif
-    registerPointer[registerNumber] = 0; // reset!
+    //-- if mode is Input (1) then reset --
+    if (BIT_IS_HIGH(registerStack.modeSettings, (registerNumber - 4)) ) 
+    {
+      //--- clear sysStatus for this slot
+      CLEARBIT(registerStack.sysStatus, (registerNumber - 4));
+      #if defined (__AVR_ATmega328P__)
+        Debug("CLEARBIT(sysStatus, "); Debug((registerNumber - 4)); Debugln(")");
+        Debug("requestEvent(b): Reset byte[0x0"); Debug(registerNumber, HEX); Debugln("] ..");
+      #endif
+      registerPointer[registerNumber] = 0; // reset slotStatus!
+    }
   }
   
 } // requestEvent()

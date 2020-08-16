@@ -6,7 +6,7 @@
 # Datatypes (KEYWORD1)
 ###########################################
 
-I2CEXTPL               	KEYWORD1
+I2CEXTPL                KEYWORD1
 SLT_PRESSED_BIT         KEYWORD1
 SLT_QUICKRELEASE_BIT    KEYWORD1
 SLT_MIDRELEASE_BIT      KEYWORD1
@@ -14,9 +14,10 @@ SLT_LONGRELEASE_BIT     KEYWORD1
 SLT_HIGH_BIT            KEYWORD1
 SLT_TOCKLE_BIT_BIT      KEYWORD1
 SLT_PULSE_BIT           KEYWORD1
-CMD_READCONF         	  KEYWORD1
-CMD_WRITECONF        	  KEYWORD1
-CMD_REBOOT           	  KEYWORD1
+SLT_PWM_BIT             KEYWORD1
+CMD_READCONF            KEYWORD1
+CMD_WRITECONF           KEYWORD1
+CMD_REBOOT              KEYWORD1
 
 
 ###########################################
@@ -48,5 +49,5 @@ isslotPressed           KEYWORD2
 isslotQuickReleased     KEYWORD2
 isslotMidReleased       KEYWORD2
 isslotLongReleased      KEYWORD2
-
+readSlot                KEYWORD2
 printRegister           KEYWORD2

@@ -98,6 +98,7 @@ And the library gives you the following helpers:
 |isSlotQuickReleased(Slot)     | bool     | uint8_t | true if the Button is released before midPressTime
 |isSlotMidReleased(Slot)       | bool     | uint8_t | true if the Button is released between midPressTime and longPressTime
 |isSlotLongReleased(Slot)      | bool     | uint8_t | true if the Button is released after longPressTime
+|readSlot(Slot)                | bool     | uint8_t | true if the output slot is HIGH
 
 
 <center><img src="images/Pinout_x41.jpg"></center>

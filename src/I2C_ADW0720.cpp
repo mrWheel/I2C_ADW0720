@@ -2,7 +2,7 @@
 ***************************************************************************  
 **
 **  File    : I2C_ADW0720.cpp
-**  Version : v1.2  - 28-07-2020
+**  Version : v1.4  - 16-08-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -56,9 +56,7 @@ bool I2CADW0720::setI2Caddress(uint8_t newAddress)
 bool I2CADW0720::setModeOutput(uint8_t slotNr)
 {
   uint8_t slotMode = readReg1Byte(I2CADW0720_SLOT_MODES);
-  //printRegister(&Serial, 1, &slotMode);
   slotMode &= ~_BV(slotNr);  //-- clear bit
-  //slotMode |= _BV(slotNr); //-- set bit 
   return(writeReg1Byte(I2CADW0720_SLOT_MODES, slotMode));
 
 } //  setModeOutput()
@@ -69,7 +67,6 @@ bool I2CADW0720::setModeInput(uint8_t slotNr)
 {
   uint8_t slotMode = readReg1Byte(I2CADW0720_SLOT_MODES);
   slotMode |= _BV(slotNr); //-- set bit 
-  //slotMode &= ~_BV(slotNr);  //-- clear bit
   return(writeReg1Byte(I2CADW0720_SLOT_MODES, slotMode));
 
 } //  setModeInput()
@@ -79,8 +76,8 @@ bool I2CADW0720::setModeInput(uint8_t slotNr)
 bool I2CADW0720::setOutputToggle(uint8_t slotNr, bool isHigh, uint16_t duration)
 {
   byte slotFunc = 0;
-  if (isHigh) slotFunc |= (1<<SLT_HIGH_BIT);    // bit 0 is On (1) or off (0)
-  slotFunc |= (1<<SLT_TOGGLE_BIT);              // bit 1 is type = on/off
+  slotFunc |= (1<<SLT_TOGGLE_BIT);              // bit 2 is type = on/off
+  if (isHigh) slotFunc |= (1<<SLT_HIGH_BIT);    // bit 3 is On (1) or off (0)
   writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
   writeReg2Byte(I2CADW0720_SLOT_DURATION, duration);
   return(writeReg1Byte(I2CADW0720_SLOT_NR, slotNr));
@@ -92,14 +89,14 @@ bool I2CADW0720::setOutputPulse(uint8_t slotNr, uint16_t hTime, uint16_t lTime, 
 {
   int wOK;
   byte slotFunc = 0;
-  slotFunc |= (1<<SLT_PULSE_BIT);               // bit 2 is type = Blink
+  slotFunc |= (1<<SLT_PULSE_BIT);               // bit 1 is type = Blink
   //--- somethings strange .. missing transmissions so we
   //--- send this 2 times and then it works most of the time
   for(uint8_t t=0; t<2; t++)
   {
     writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
-    writeReg2Byte(I2CADW0720_SLOT_LOWTIME, hTime);
-    writeReg2Byte(I2CADW0720_SLOT_HIGHTIME, lTime);
+    writeReg2Byte(I2CADW0720_SLOT_HIGHTIME, hTime);
+    writeReg2Byte(I2CADW0720_SLOT_LOWTIME,  lTime);
     writeReg2Byte(I2CADW0720_SLOT_DURATION, duration);
     wOK = writeReg1Byte(I2CADW0720_SLOT_NR, slotNr);
   }
@@ -107,6 +104,21 @@ bool I2CADW0720::setOutputPulse(uint8_t slotNr, uint16_t hTime, uint16_t lTime, 
   return(wOK);
 
 } //  setOutputPulse()
+
+//-------------------------------------------------------------------------------------
+bool I2CADW0720::setOutputPWM(uint8_t slotNr, uint8_t pwmVal, uint16_t duration)
+{
+  int wOK;
+  byte slotFunc = 0;
+  slotFunc |= (1<<SLT_PWM_BIT);               // bit 0 is type = PWM
+  writeReg1Byte(I2CADW0720_SLOT_FUNC, slotFunc);
+  writeReg1Byte(I2CADW0720_SLOT_PWMVALUE, pwmVal);
+  writeReg2Byte(I2CADW0720_SLOT_DURATION, duration);
+  wOK = writeReg1Byte(I2CADW0720_SLOT_NR, slotNr);
+  
+  return(wOK);
+
+} //  setOutputPWM()
 
 //-------------------------------------------------------------------------------------
 bool I2CADW0720::setDebounceTime(uint8_t microsecs)
@@ -467,6 +479,18 @@ bool I2CADW0720::isSlotLongReleased(uint8_t slotNr)
   }
   return false;
 }
+
+//-------------------------------------------------------------------------------------
+bool I2CADW0720::readSlot(uint8_t slotNr)
+{
+  byte slotState = getSlotStatus(slotNr);
+  if ( (slotState) & (1<<(SLT_HIGH_BIT)) ) 
+  {
+    return true;
+  }
+  return false;
+}
+
 
 //===========================================================================================
 //assumes little endian

@@ -76,13 +76,47 @@ void handleKeyInput()
             {
               ExtenderBoard.setModeOutput(slotNr);
               ExtenderBoard.setOutputPulse(slotNr, 100,200,5000);
+              break;
             }
             if (val == 1) ExtenderBoard.setModeInput(slotNr);
             break;
 
-      case 'w':
-      case 'W':
-            walkingOutput();
+      case 'p':
+      case 'P':
+            val = readNumber("set PWM for slot [2,3,4] ", 0, 7);
+            if (val == 2 || val == 3 || val == 4)
+            {
+              slotNr = val;
+              val = readNumber("set PWM ", 0, 255);
+              ExtenderBoard.setOutputPWM(slotNr, (uint8_t)val, 0);
+            }
+            else 
+            {
+              Serial.println(F("Not a PWM slot!"));
+              break;
+            }
+            break;
+
+      case 't':
+      case 'T':
+            val = readNumber("toggle slot ", 0, 7);
+            slotNr = val;
+            byte slotMode; 
+            slotMode = ExtenderBoard.getSlotModes();
+            if (BIT_IS_LOW(slotMode, slotNr))
+            {
+              if (ExtenderBoard.readSlot(slotNr))
+                    ExtenderBoard.setOutputToggle(slotNr, LOW,  0);
+              else  ExtenderBoard.setOutputToggle(slotNr, HIGH, 0);
+            }
+            else Serial.println("Not an Output Slot!");
+            break;
+
+      case '+':
+            walkTheSlots(true);
+            break;
+      case '-':
+            walkTheSlots(false);
             break;
                         
       case 'A':
@@ -191,7 +225,10 @@ void handleKeyInput()
             Serial.print(F(" 0-7 set Slot (0=Output, 1=Input) "));
             ExtenderBoard.printRegister(&Serial, 1, &slotModes);
             Serial.println("");
-            Serial.println(F(" W.  Walk the output Slot's\r\n"));
+            Serial.println(F(" P.  Set PWM for output Slot"));
+            Serial.println(F(" T.  toggle output Slot"));
+            Serial.println(F(" +.  Walk the output Slot's (Up)"));
+            Serial.println(F(" -.  Walk the output Slot's (Down)\r\n"));
             Serial.print(F("*A.  Change I2C address .............. (is now [0x"));
             Serial.print(I2C_Address, HEX);
             Serial.print(F(", dec"));
