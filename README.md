@@ -61,6 +61,9 @@ void loop()
 
 <center><img src="images/I2C-ADW0720-1.jpg"></center>
 
+<center><img =src="images/ADW0720-Type2.png"></center>
+
+
 The library gives you the following setters:
 
 | Setter                       | Returns  | Parms   | Description             |
@@ -100,5 +103,6 @@ And the library gives you the following helpers:
 |isSlotLongReleased(Slot)      | bool     | uint8_t | true if the Button is released after longPressTime
 |readSlot(Slot)                | bool     | uint8_t | true if the output slot is HIGH
 
+<center><img =src="images/I2C_ADW0720-T1-T2.png"></center>
 
 <center><img src="images/Pinout_x41.jpg"></center>
