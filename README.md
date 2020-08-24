@@ -72,6 +72,7 @@ The library gives you the following setters:
 | setModeInput(Slot)           | bool     | uint8_t | set (slot) as INPUT-PULLUP pin|
 | setOutputToggle(Slot,{HIGH\|LOW},duration)  | bool     | uint8_t, bool, uint16_t  | Toggel (slot, on/off, duration (ms))|
 | setOutputPulse(Slot,onTime,offTime,duration)| bool     | uint8_t, uint16_t, uint16_t, uint16_t  | set pulse (slot, on (ms), off (ms), duration (ms))|
+| setLogicType(logicType)      | bool     | uint8_t | set the Logic Type used (Normal == 0, Inverted > 0)
 | setDebounceTime(debounceTime)| bool     | uint8_t | set the Debounce Time of the switch (5 .. 250 micro seconds)|
 | setMidPressTime(midTime)     | bool     | uint16_t| set the Mid Press Time of the switch (100 .. 5000 milli seconds)|
 | setLongPressTime(longTime)   | bool     | uint16_t| set the Long Press Time of the switch (300 .. 10000 milli seconds)|
@@ -86,6 +87,7 @@ The library gives you the following getters:
 | getSysStatus()               | uint8_t  | none    | returns the status byte
 | getSlotStatus(Slot)          | uint8_t  | uint8_t | returns the status of the selected slot
 | getWhoAmI()                  | int8_t   | none    | returns the Address Register
+| getLogicType()               | int8_t   | none    | returns the type of Logic used (Normal == 0, Inverted > 0)
 | getDebounceTime()            | uint8_t  | none    | returns the Debounce Time of the switch (5 .. 250 micro seconds)
 | getMidPressTime()            | uint16_t | none    | returns the Mid Press Time of the switch (100 .. 5000 milli seconds)
 | getLongPressTime()           | uint16_t | none    | returns the Long Press Time of the switch (300 .. 10000 milli seconds)
@@ -104,5 +106,7 @@ And the library gives you the following helpers:
 |readSlot(Slot)                | bool     | uint8_t | true if the output slot is HIGH
 
 <center><img src="images/I2C_ADW0720-T1-T2.png"></center>
+
+<center><img src="images/I2C_ADW0720-T3_3D.png"></center>
 
 <center><img src="images/Pinout_x41.jpg"></center>

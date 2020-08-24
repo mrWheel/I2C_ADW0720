@@ -6,7 +6,7 @@
 # Datatypes (KEYWORD1)
 ###########################################
 
-I2CEXTPL                KEYWORD1
+I2CADW0720              KEYWORD1
 SLT_PRESSED_BIT         KEYWORD1
 SLT_QUICKRELEASE_BIT    KEYWORD1
 SLT_MIDRELEASE_BIT      KEYWORD1
@@ -28,6 +28,7 @@ isConnected             KEYWORD2
 getSysStatus            KEYWORD2
 getSlotStatus           KEYWORD2
 getWhoAmI               KEYWORD2
+getLogicType            KEYWORD2
 getDebounceTime         KEYWORD2
 getMidPressTime         KEYWORD2
 getLongPressTime        KEYWORD2
@@ -39,6 +40,7 @@ setModeOutput           KEYWORD2
 setModeInput            KEYWORD2
 setOutputToggle         KEYWORD2
 setOutputPulse          KEYWORD2
+setLogicType            KEYWORD2
 setDebounceTime         KEYWORD2
 setMidPressTime         KEYWORD2
 setLongPressTime        KEYWORD2

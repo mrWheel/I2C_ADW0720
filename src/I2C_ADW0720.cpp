@@ -2,7 +2,7 @@
 ***************************************************************************  
 **
 **  File    : I2C_ADW0720.cpp
-**  Version : v1.4  - 16-08-2020
+**  Version : v1.5  - 24-08-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -121,6 +121,13 @@ bool I2CADW0720::setOutputPWM(uint8_t slotNr, uint8_t pwmVal, uint16_t duration)
 } //  setOutputPWM()
 
 //-------------------------------------------------------------------------------------
+bool I2CADW0720::setLogicType(uint8_t logicType)
+{
+  if (logicType > 0) logicType = 1;
+  return (writeReg1Byte(I2CADW0720_LOGICTYPE, logicType));
+} //  setLogicType()
+
+//-------------------------------------------------------------------------------------
 bool I2CADW0720::setDebounceTime(uint8_t microsecs)
 {
   return (writeReg1Byte(I2CADW0720_DEBOUNCETIME, microsecs));
@@ -177,6 +184,12 @@ int8_t I2CADW0720::getWhoAmI()
 {
   return (readReg1Byte(I2CADW0720_ADDRESS));
 } //  getWhoAmI()
+
+//-------------------------------------------------------------------------------------
+uint8_t I2CADW0720::getLogicType()
+{
+  return (readReg1Byte(I2CADW0720_LOGICTYPE));
+} //  getDebounceTime()
 
 //-------------------------------------------------------------------------------------
 uint8_t I2CADW0720::getDebounceTime()

@@ -3,7 +3,7 @@
 **
 **  Program     : I2C_ADW0720_Configurator
 */
-#define _FW_VERSION  "v1.4 (16-08-2020)"
+#define _FW_VERSION  "v1.5 (24-08-2020)"
 /*
 **  Description : With this program you can configure 
 **                I2C extender boards

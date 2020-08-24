@@ -28,6 +28,7 @@ static void readConfig()
     registerStack.majorRelease  = _MAJOR_RELEASE;
     registerStack.minorRelease  = _MINOR_RELEASE;
     registerStack.slotModes     =  0xFF;
+    registerStack.logicType     =     0;
     registerStack.debounceTime  =    10;
     registerStack.midPressTime  =   500;
     registerStack.longPressTime =  1500;

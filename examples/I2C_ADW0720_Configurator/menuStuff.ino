@@ -101,15 +101,38 @@ void handleKeyInput()
       case 'T':
             val = readNumber("toggle slot ", 0, 7);
             slotNr = val;
-            byte slotMode; 
+            byte slotMode, slotStat; 
             slotMode = ExtenderBoard.getSlotModes();
             if (BIT_IS_LOW(slotMode, slotNr))
             {
+              //slotStat = ExtenderBoard.getSlotStatus(slotNr);
+              //Serial.print(F("SlotStatus (Before) "));
+              //ExtenderBoard.printRegister(&Serial, 1, &slotStat);
+              //Serial.println();
               if (ExtenderBoard.readSlot(slotNr))
-                    ExtenderBoard.setOutputToggle(slotNr, LOW,  0);
-              else  ExtenderBoard.setOutputToggle(slotNr, HIGH, 0);
+              {
+                //Serial.println(F("slot is HIGH, now set to LOW"));
+                ExtenderBoard.setOutputToggle(slotNr, LOW,  0);
+              }
+              else
+              {
+                //Serial.println(F("slot is LOW, now set to HIGH"));
+                ExtenderBoard.setOutputToggle(slotNr, HIGH, 0);
+              }
+              //slotStat = ExtenderBoard.getSlotStatus(slotNr);
+              //Serial.print(F("SlotStatus (After)  "));
+              //ExtenderBoard.printRegister(&Serial, 1, &slotStat);
+              //Serial.println();
             }
             else Serial.println("Not an Output Slot!");
+            break;
+
+      case 'u':
+      case 'U':
+            val = ExtenderBoard.getLogicType();
+            if (val > 0)
+                  ExtenderBoard.setLogicType(0);
+            else  ExtenderBoard.setLogicType(1);
             break;
 
       case '+':
@@ -227,6 +250,9 @@ void handleKeyInput()
             Serial.println("");
             Serial.println(F(" P.  Set PWM for output Slot"));
             Serial.println(F(" T.  toggle output Slot"));
+            Serial.print(F(" U.  Toggle Logic Type  (is now ["));
+            Serial.print(ExtenderBoard.getLogicType() ? "Inversed" : "Normal");
+            Serial.println(F("])"));
             Serial.println(F(" +.  Walk the output Slot's (Up)"));
             Serial.println(F(" -.  Walk the output Slot's (Down)\r\n"));
             Serial.print(F("*A.  Change I2C address .............. (is now [0x"));

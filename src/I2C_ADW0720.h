@@ -2,7 +2,7 @@
 ***************************************************************************  
 **
 **  File    : I2C_ADW0720.h
-**  Version : v1.4  - 16-08-2020
+**  Version : v1.5  - 24-08-2020
 **
 **  Copyright (c) 2020 Willem Aandewiel
 **
@@ -49,16 +49,17 @@ enum boardRegisters {
   I2CADW0720_SLOTSTATUS_6   = 0x0A,
   I2CADW0720_SLOTSTATUS_7   = 0x0B,
   I2CADW0720_SLOT_MODES     = 0x0C,
-  I2CADW0720_DEBOUNCETIME   = 0x0D,  // microSeconds
-  I2CADW0720_MIDPRESSTIME   = 0x0E,  // 2 bytes 0x0E 0x0F
-  I2CADW0720_LONGPRESSTIME  = 0x10,  // 2 bytes 0x10 0x11
-  I2CADW0720_SLOT_NR        = 0x12,
-  I2CADW0720_SLOT_FUNC      = 0x13,
-  I2CADW0720_SLOT_PWMVALUE  = 0x14,
-  I2CADW0720_SLOT_HIGHTIME  = 0x15, // 2 bytes 0x15 0x16
-  I2CADW0720_SLOT_LOWTIME   = 0x17, // 2 bytes 0x17 0x18
-  I2CADW0720_SLOT_DURATION  = 0x19, // 2 bytes 0x19 0x1A
-  I2CADW0720_MODESETTINGS   = 0x1B,
+  I2CADW0720_LOGICTYPE      = 0x0D,  // High->Low and Low->High
+  I2CADW0720_DEBOUNCETIME   = 0x0E,  // microSeconds
+  I2CADW0720_MIDPRESSTIME   = 0x0F,  // 2 bytes 0x0F 0x10
+  I2CADW0720_LONGPRESSTIME  = 0x11,  // 2 bytes 0x11 0x12
+  I2CADW0720_SLOT_NR        = 0x13,
+  I2CADW0720_SLOT_FUNC      = 0x14,
+  I2CADW0720_SLOT_PWMVALUE  = 0x15,
+  I2CADW0720_SLOT_HIGHTIME  = 0x16, // 2 bytes 0x16 0x17
+  I2CADW0720_SLOT_LOWTIME   = 0x18, // 2 bytes 0x18 0x19
+  I2CADW0720_SLOT_DURATION  = 0x1A, // 2 bytes 0x1A 0x1B
+  I2CADW0720_MODESETTINGS   = 0x1C,
   //----
   I2CADW0720_COMMAND        = 0xF0   // -> this is NOT a "real" register!!
 };
@@ -79,6 +80,7 @@ public:
   uint8_t   getSlotStatus(uint8_t);       // reads the slot status byte
   uint8_t   getSlotModes();
   int8_t    getWhoAmI();                  // read the Address Register
+  uint8_t   getLogicType();               // read the Logic Type active (Inversed > 0, Normal == 0)
   uint8_t   getDebounceTime();            // read the Debounce Time of the switch (5 .. 250 micro seconds)
   uint16_t  getMidPressTime();            // read the Mid Press Time of the switch (100 .. 5000 milli seconds)
   uint16_t  getLongPressTime();           // read the Long Press Time of the switch (300 .. 10000 milli seconds)
@@ -98,6 +100,7 @@ public:
   bool      setOutputPulse(uint8_t, uint16_t, uint16_t, uint16_t);         
   //--           set pwm <slot>, <pwmVal>, <Duration>  
   bool      setOutputPWM(uint8_t, uint8_t, uint16_t);         
+  bool      setLogicType(uint8_t);        // set Logic Type (Inversed > 0, Normal == 0) mainly for type 3 boards
   bool      setDebounceTime(uint8_t);     // set the Debounce Time of the switch (5 .. 250 micro seconds)
   bool      setMidPressTime(uint16_t);    // set the Mid Press Time of the switch (100 .. 5000 milli seconds)
   bool      setLongPressTime(uint16_t);   // set the Long Press Time of the switch (300 .. 10000 milli seconds)

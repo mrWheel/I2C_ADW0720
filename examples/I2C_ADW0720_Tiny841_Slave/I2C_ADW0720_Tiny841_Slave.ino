@@ -1,9 +1,9 @@
 /*
 **    Program : I2C_ADW0720_Tiny841_Slave
-**    Date    : 16-08-2020
+**    Date    : 24-08-2020
 */
 #define _MAJOR_RELEASE  1
-#define _MINOR_RELEASE  4
+#define _MINOR_RELEASE  5
 /*
 **    Copyright (c) 2020 Willem Aandewiel
 **
@@ -99,24 +99,25 @@ struct registerLayout {
   byte      majorRelease;       // 0x01 (RO)
   byte      minorRelease;       // 0x02 (RO)
   byte      sysStatus;          // 0x03 (RO)
-  byte      slotStatus[8];      // 0x04 (RO) 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
+  byte      slotStatus[8];      // 0x04 (RO) 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
   uint8_t   slotModes;          // 0x0C (RO) -->> _SLOTMODES must be the same offset
-  uint8_t   debounceTime;       // 0x0D (R/W)
-  uint16_t  midPressTime;       // 0x0E (R/W) - 2 bytes 0x0E 0x0F
-  uint16_t  longPressTime;      // 0x10 (R/W) - 2 bytes 0x10 0x11
-  byte      tmpSlotNr;          // 0x12 (R/W) -->> _TMPSLOTNR must be the same offset
-  byte      tmpOutputFunc;      // 0x13 (R/W)
-  uint8_t   tmpPWMvalue;        // 0x14 (R/W)
-  uint16_t  tmpPulseHighTime;   // 0x15 (R/W) - 2 bytes 0x15 0x16
-  uint16_t  tmpPulseLowTime;    // 0x17 (R/W) - 2 bytes 0x17 0x18
-  uint16_t  tmpStateDuration;   // 0x19 (R/W) - 2 bytes 0x19 0x1A
-  uint8_t   modeSettings;       // 0x1B (R/W) -->> _MODESETTINGS must be the same offset <<--
-  byte      filler[4];          // 0x1C -> 0x1C, 0x1D, 0x1E, 0x1F
+  byte      logicType;          // 0x0D (R/W)
+  uint8_t   debounceTime;       // 0x0E (R/W)
+  uint16_t  midPressTime;       // 0x0F (R/W) - 2 bytes 0x0F 0x10
+  uint16_t  longPressTime;      // 0x11 (R/W) - 2 bytes 0x11 0x12
+  byte      tmpSlotNr;          // 0x13 (R/W) -->> _TMPSLOTNR must be the same offset
+  byte      tmpOutputFunc;      // 0x14 (R/W)
+  uint8_t   tmpPWMvalue;        // 0x15 (R/W)
+  uint16_t  tmpPulseHighTime;   // 0x16 (R/W) - 2 bytes 0x16 0x17
+  uint16_t  tmpPulseLowTime;    // 0x18 (R/W) - 2 bytes 0x18 0x19
+  uint16_t  tmpStateDuration;   // 0x1A (R/W) - 2 bytes 0x1A 0x1B
+  uint8_t   modeSettings;       // 0x1C (R/W) -->> _MODESETTINGS must be the same offset <<--
+  byte      filler[4];          // 0x1D -> 0x1D, 0x1E, 0x1F, 0x20
 };
 
-#define _TMPSLOTNR      0x12
+#define _TMPSLOTNR      0x13
 #define _SLOTMODES      0x0C
-#define _MODESETTINGS   0x1B
+#define _MODESETTINGS   0x1C
 #define _CMD_REGISTER   0xF0  // not a real register!
 
 //These are the defaults for all settings
@@ -127,17 +128,18 @@ volatile registerLayout registerStack = {
   .sysStatus =                     0,     // 0x03
   .slotStatus =    {0,0,0,0,0,0,0,0},     // 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B
   .slotModes =                  0xFF,     // 0x0C   -> default all Slots INPUT
-  .debounceTime =                  5,     // 0x0D
-  .midPressTime =                500,     // 0x0E 2 --> 0x0E 0x0F
-  .longPressTime =              1500,     // 0x10 2 --> 0x10 0x11
-  .tmpSlotNr =                     0,     // 0x12
-  .tmpOutputFunc =                 0,     // 0x13
-  .tmpPWMvalue =                   0,     // 0x14
-  .tmpPulseHighTime =              0,     // 0x15 2 --> 0x15 0x16
-  .tmpPulseLowTime =               0,     // 0x17 2 --> 0x17 0x18
-  .tmpStateDuration =              0,     // 0x19 2 --> 0x19 0x1A
-  .modeSettings =               0x00,     // 0x1B
-  .filler =  {0xFF, 0xFF, 0xFF, 0xFF}     // 0x1C 4 --> 0x1C, 0x1D, 0x1E, 0x1F
+  .logicType =                     0,     // 0x0D
+  .debounceTime =                  5,     // 0x0E
+  .midPressTime =                500,     // 0x0F 2 --> 0x0F 0x10
+  .longPressTime =              1500,     // 0x11 2 --> 0x11 0x12
+  .tmpSlotNr =                     0,     // 0x13
+  .tmpOutputFunc =                 0,     // 0x14
+  .tmpPWMvalue =                   0,     // 0x15
+  .tmpPulseHighTime =              0,     // 0x16 2 --> 0x16 0x17
+  .tmpPulseLowTime =               0,     // 0x18 2 --> 0x18 0x19
+  .tmpStateDuration =              0,     // 0x1A 2 --> 0x1A 0x1B
+  .modeSettings =               0x00,     // 0x1C
+  .filler =  {0xFF, 0xFF, 0xFF, 0xFF}     // 0x1D 4 --> 0x1D, 0x1E, 0x1F, 0x20
 };
 
 //Cast 32bit address of the object registerStack with uint8_t so we can increment the pointer
@@ -167,6 +169,17 @@ slotFields  slot[8];
 
 
 //==========================================================================
+
+//==========================================================================
+bool logicType(bool state)
+{
+  if (registerStack.logicType == 0) return state;
+  
+  if (state)  return false;
+  else        return true;  
+  
+} //  logicType()
+
 
 //==========================================================================
 void setSlotAsOutput(uint8_t slotNr)
@@ -291,41 +304,41 @@ void slotWrite(uint8_t slotNr, bool newState)
   {
     #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
       case 0:   //--- PB0, slot0, D10
-                digitalWrite(PIN_PB0, newState);
+                digitalWrite(PIN_PB0, logicType(newState));
                 break;
       case 1:   //--- PB1, slot1, D9
-                digitalWrite(PIN_PB1, newState);
+                digitalWrite(PIN_PB1, logicType(newState));
                 break;
       case 2:   //--- PB2, slot2, D8
-                digitalWrite(PIN_PB2, newState);
+                digitalWrite(PIN_PB2, logicType(newState));
                 break;
       case 3:   //--- PA7, slot3, D7
-                digitalWrite(PIN_PA7, newState);
+                digitalWrite(PIN_PA7, logicType(newState));
                 break;
       case 4:   //--- PA3, slot4, D3
-                digitalWrite(PIN_PA3, newState);
+                digitalWrite(PIN_PA3, logicType(newState));
                 break;
       case 5:   //--- PA2, slot5, D2
-                digitalWrite(PIN_PA2, newState);
+                digitalWrite(PIN_PA2, logicType(newState));
                 break;
       case 6:   //--- PA1, slot6, D1
-                digitalWrite(PIN_PA1, newState);
+                digitalWrite(PIN_PA1, logicType(newState));
                 break;
       case 7:   //--- PA0, slot7, D0
-                digitalWrite(PIN_PA0, newState);
+                digitalWrite(PIN_PA0, logicType(newState));
                 break;
       default:  return;
     #endif
 
     #if defined (__AVR_ATmega328P__)
-      case 0:   digitalWrite( 8, newState); break;
-      case 1:   digitalWrite( 9, newState); break;
-      case 2:   digitalWrite(10, newState); break;
-      case 3:   digitalWrite(11, newState); break;
-      case 4:   digitalWrite(A0, newState); break;
-      case 5:   digitalWrite(A1, newState); break;
-      case 6:   digitalWrite(A2, newState); break;
-      case 7:   digitalWrite(A3, newState); break;
+      case 0:   digitalWrite( 8, logicType(newState)); break;
+      case 1:   digitalWrite( 9, logicType(newState)); break;
+      case 2:   digitalWrite(10, logicType(newState)); break;
+      case 3:   digitalWrite(11, logicType(newState)); break;
+      case 4:   digitalWrite(A0, logicType(newState)); break;
+      case 5:   digitalWrite(A1, logicType(newState)); break;
+      case 6:   digitalWrite(A2, logicType(newState)); break;
+      case 7:   digitalWrite(A3, logicType(newState)); break;
       default:  return;
     #endif
   }
@@ -339,6 +352,8 @@ void slotWrite(uint8_t slotNr, bool newState)
 //==========================================================================
 void slotWritePWM(uint8_t slotNr, uint8_t pwmValue)
 {
+  if (registerStack.logicType != 0) pwmValue = 255 - pwmValue;
+  
   switch(slotNr)
   {
     #if defined (__AVR_ATtiny841__) || defined (__AVR_ATtiny84__)
